@@ -65,7 +65,12 @@
                 $pageContent = $view->companyProfile($result);
 
             }else{
-                $pageContent = $view->buyerProfile();
+                
+                $result['sectors'] = $process->getSectors();
+                $result['companyDetails'] = $process->getCompanyDetails($_SESSION['user_id']);
+                $result['interest'] = $process->getInterest();
+
+                $pageContent = $view->buyerProfile($result);
             }
 
         }else if(isset($_SESSION['user_id']) && $_GET['page'] == 'logout'){
@@ -192,8 +197,6 @@
 
 
                 }
-
-
             }else{
                 $result['message'] = '
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -205,13 +208,8 @@
                 ';
             }
             $pageContent = $view->buyerRegistrationForm($result);
-
-        
-
-
-
         }else{
-
+            $pageContent = $view->home();
         }
     }else{
         $pageContent = $view->home();
@@ -248,6 +246,62 @@
 
                 //update interest
             }
+        }else if($_POST['ajaxRequest'] == 'saveBuyerProfile'){
+            
+            $result['sectors'] = $process->getSectors();
+
+            // $result['message'] = '
+            //     <div class="alert alert-success alert-dismissible fade show" role="alert">
+            //         <strong>Success!</strong> Account has been created please sign in.
+            //         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            //             <span aria-hidden="true">&times;</span>
+            //         </button>
+            //     </div>
+
+            // ';
+            $result['message'] = 'Success! Profile was updated.';
+            $result['companyDetails'] = $process->getCompanyDetails($_SESSION['user_id']);
+
+            //return buyer Id upon success
+            $wasUpdated = $process->updateUserProfile($_POST);
+            
+            if ($wasUpdated != false){
+
+                $wasUpdated = $process->setInterestList($_POST['interest'], $_SESSION['user_id']);
+                
+                if ($wasUpdated == false){
+                    
+                    $result['message'] = 'Notice: Unable to save selected interest at the moment.';
+
+                    // $result['message'] .= '
+                    //     <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    //         <strong>Notice:</strong> Unable to save selected interest.
+                    //         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    //             <span aria-hidden="true">&times;</span>
+                    //         </button>
+                    //     </div>
+                    // ';
+                }else{
+                    
+                    $_POST['companyId'] = $result['companyDetails'][0]['id'];
+                    $wasUpdated = $process->updateCompanyProfile($_POST);
+
+                    if ($wasUpdated == false){
+                        $result['message'] = 'Notice: Was not able to save company name, try again later.';
+                    }
+
+                }
+            }else{ 
+                $result['message'] = 'Notice: Unable to update User Profile';
+                //     <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                //         <strong>Notice:</strong> Unable to create account at the moment.
+                //         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                //             <span aria-hidden="true">&times;</span>
+                //         </button>
+                //     </div>
+                // ';
+            }
+            echo $result['message'];
 
         }else if($_POST['ajaxRequest'] == 'saveCompanyProfile'){
 

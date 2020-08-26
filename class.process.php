@@ -261,73 +261,6 @@ class Process{
         return false;
 
     }
-    //Updates the user profile
-    public function updateUserProfile($data = null){
-
-        $fName = $this->sanitize($data['firstName']) ?? '';
-        $lName = $this->sanitize($data['lastName']) ?? '';
-
-        $sql = 'UPDATE users SET full_name = ? WHERE id = '.$_SESSION['user_id'].';';
-        $query = $this->conn->prepare($sql);
-        $result = $query->execute([$fName.' '.$lName]);
-        
-        if (!$result){
-            $this->log->error('updateUserProfile returned false');
-            return false;
-        }
-        $_SESSION['full_name'] = $fName.' '.$lName;
-        return true;
-        
-
-    }
-    //Updates a companys profile 
-    public function updateCompanyProfile($data = null){
-        
-        $ctv = $this->sanitize($data['ctv']) ?? NULL;
-        $description = $this->sanitize($data['description']) ?? NULL;
-        $name = $this->sanitize($data['name']) ?? NULL;
-        $email = $this->sanitize($data['email']) ?? NULL;
-        $phone = $this->sanitize($data['phone']) ?? NULL;
-        $street = $this->sanitize($data['street']) ?? NULL;
-        $website = $this->sanitize($data['website']) ?? NULL;
-        $district = $this->sanitize($data['district']) ?? NULL;
-        
-        $sql = "UPDATE 
-                    company 
-                SET 
-                    name = ?,
-                    description = ?,
-                    website_link = ?,
-                    phone = ?,
-                    email = ?,
-                    ctv = ?,
-                    street = ?,
-                    district = ?,
-                    logo_img_path = ?
-                WHERE 
-                    id = ".$data['companyId']." AND
-                    user_id = ".$_SESSION['user_id']."";
-        $query = $this->conn->prepare($sql);
-        $result = $query->execute([
-            $name,
-            $description,
-            $website,
-            $phone,
-            $email,
-            $ctv,
-            $street,
-            $district,
-            $data['logoImagePath']
-        ]);
-        
-        if (!$result){
-            $this->log->error('updateComanyProfile returned false');
-            return false;
-        }
-        return true;
-
-
-    }
     public function setSocialContactList ($data = null){
 
         foreach ($data as $key => $array){
@@ -395,14 +328,12 @@ class Process{
                     $status = 0;
                 }
 
-                if (isset($array['interestId'])){
+                if (isset($array['interestId']) && $status != 0){
                     //record exist  --- update
-                    
-    
                     $sql = "UPDATE 
                                 interest 
                             SET 
-                                sector_id = ?,
+                                ".(($status == 1 )? 'sector_id = ?,' : '')."
                                 status = ?
     
                             WHERE 
@@ -410,17 +341,34 @@ class Process{
                                 user_id = ".$userId."";
                     
                     $query = $this->conn->prepare($sql);
-                    $result = $query->execute([
-                        $array['sectorId'],
-                        $status
-
-                    ]);
+                    $result = $query->execute([$array['sectorId'], $status]);
                     
                     if (!$result){
                         $this->log->error('setExportMarketList update section returned false');
                         return false;
                     }
     
+                }else if (isset($array['interestId']) && $status == 0){
+
+                    // remove record
+                    $sql = "UPDATE 
+                                interest 
+                            SET 
+                                
+                                status = 0
+    
+                            WHERE 
+                                id = ".$array['interestId']." AND 
+                                user_id = ".$userId."";
+                    
+                    $query = $this->conn->prepare($sql);
+                    $result = $query->execute();
+                    
+                    if (!$result){
+                        $this->log->error('setExportMarketList update section returned false');
+                        return false;
+                    }
+
                 }else{
                     if ($status != 0){
                         //record doesn't exist --- insert
@@ -519,6 +467,73 @@ class Process{
         
         if (!$result){
             $this->log->error('removeExportMarketFromList returned false');
+            return false;
+        }
+        return true;
+
+
+    }
+   //Updates the user profile
+    public function updateUserProfile($data = null){
+
+        $fName = $this->sanitize($data['firstName']) ?? '';
+        $lName = $this->sanitize($data['lastName']) ?? '';
+
+        $sql = 'UPDATE users SET full_name = ? WHERE id = '.$_SESSION['user_id'].';';
+        $query = $this->conn->prepare($sql);
+        $result = $query->execute([$fName.' '.$lName]);
+        
+        if (!$result){
+            $this->log->error('updateUserProfile returned false');
+            return false;
+        }
+        $_SESSION['full_name'] = $fName.' '.$lName;
+        return true;
+        
+
+    }
+    //Updates a companys profile 
+    public function updateCompanyProfile($data = null){
+        
+        $ctv = $this->sanitize($data['ctv'] ?? NULL);
+        $description = $this->sanitize($data['description'] ?? NULL);
+        $name = $this->sanitize(($data['name'] ?? NULL)) ;
+        $email = $this->sanitize($data['email'] ?? NULL);
+        $phone = $this->sanitize($data['phone'] ?? NULL);
+        $street = $this->sanitize($data['street'] ?? NULL);
+        $website = $this->sanitize($data['website'] ?? NULL);
+        $district = $this->sanitize($data['district'] ?? NULL);
+        
+        $sql = "UPDATE 
+                    company 
+                SET 
+                    name = ?,
+                    description = ?,
+                    website_link = ?,
+                    phone = ?,
+                    email = ?,
+                    ctv = ?,
+                    street = ?,
+                    district = ?,
+                    logo_img_path = ?
+                WHERE 
+                    id = ".$data['companyId']." AND
+                    user_id = ".$_SESSION['user_id']."";
+        $query = $this->conn->prepare($sql);
+        $result = $query->execute([
+            $name,
+            $description,
+            $website,
+            $phone,
+            $email,
+            $ctv,
+            $street,
+            $district,
+            ($data['logoImagePath'] ?? NULL)
+        ]);
+        
+        if (!$result){
+            $this->log->error('updateComanyProfile returned false');
             return false;
         }
         return true;

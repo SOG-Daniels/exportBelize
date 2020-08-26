@@ -1499,19 +1499,23 @@ class Ui {
     public function buyerProfile($data = null){
        
         $interestSelect = '';
+        $hiddenInterestIds = '';
         $sectorOptions = '';
         $fullName = explode(' ',$_SESSION['full_name']);
         $num = 1;
 
         //building interest select with options 
         while($num <= 3){
+            $sectorOptions = '';
             if (array_key_exists(($num - 1), $data['interest'])){
-                echo 'yes<br>';
+                
                 $defaultInterest = '';
+                
                 foreach ($data['sectors'] as $sector){
                     
                     if($data['interest'][($num - 1)]['sector_id'] == $sector['id']){
-                        $sectorOptions = '
+                        $hiddenInterestIds .= '<input type="hidden" name = "interest['.($num-1).'][interestId]" value="'.$data['interest'][($num-1)]['id'].'">';
+                        $sectorOptions .= '
                             <option value="'.$sector['id'].'" selected>'.$sector['name'].'</option>
                         ';
                         
@@ -1526,7 +1530,7 @@ class Ui {
             }else{
                 // $defaultInterest = 'selected';
                 foreach ($data['sectors'] as $sector){
-                    $sectorOptions = '
+                    $sectorOptions .= '
                         <option value="'.$sector['id'].'">'.$sector['name'].'</option>
                     ';
                 }
@@ -1535,7 +1539,7 @@ class Ui {
             $interestSelect .= '
                 <div class="col-md-4 col-12 mb-3">
                     <label for="">Intrest <sub>#'.$num.'<sub></label>
-                    <select name="interest[][sectorId]"  class="form-control">
+                    <select name="interest['.($num-1).'][sectorId]"  class="form-control">
                         <option value="0">None</option>
                         '.$sectorOptions.'
                     </select>
@@ -1558,9 +1562,10 @@ class Ui {
                                     </button>
                                 <div class="card-body">
                                     <h3 class=""><i class="fa fa-user fa-lg title-icon text-primary"></i> Personal Profile</h3>
-                                    <form id="myProfile">
+                                    <form id="myProfile" action="'.BASE_URL.'">
                                         '.($data['message'] ?? '').'
-                                        <input type="hidden" name="action" value="buyerRegistration">
+                                        <input type="hidden" name="ajaxRequest" value="saveBuyerProfile">
+                                        '.$hiddenInterestIds.'
                                         <div class="form-row">
                                             <div class="col-md-6 mb-3">
                                             <label for="validationDefault01">First name</label>
