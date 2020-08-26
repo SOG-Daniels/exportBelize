@@ -1,0 +1,17 @@
+/* Overiding or adding of styling to some css classes defined for the template */
+figure.effect-oscar img {
+  height: auto;
+  width: 100%;
+}
+.client_logo img {
+    width: auto;
+    height: 65px;
+}
+.about-img img {
+    width: auto;
+    height: 50%;
+    width: 100%;
+    height: auto;
+    padding-bottom: 0px;
+    margin-bottom:  0px;
+}
