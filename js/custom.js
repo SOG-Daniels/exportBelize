@@ -205,4 +205,32 @@ $(document).ready(function(){
     }    
     $(this).parent().parent().parent().remove();
   });
+
+  //ADDS A PRODUCT CARD
+  $('#add-product-card').click(function (e){
+    e.preventDefault();
+    
+    let html = '<div class="row pb-3">' +
+                  '<div class="col-12">'+
+                      '<div class="card shadow">'+
+                          '<div class="card-header">'+
+                              '<a class="card-link" data-toggle="collapse" data-target="#product-2" href="#">'+
+                              'Collapsible Group Item #1'+
+                                '<span class="float-right"><i class="fa fa-chevron-down"></i><span>'+
+                              '</a>'+
+                          '</div>'+
+                      '<div id="product-2" class="collapse show">'+
+                              '<div class="card-body">'+
+                                  'lorem ipsum.'+
+                              '</div>'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+              '</div>'
+    ; 
+    
+    $('#product-list').append(html);
+
+  });
+
 });

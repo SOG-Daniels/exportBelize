@@ -1,5 +1,4 @@
-$(document).ready(function(){
 
-    $('#business-approval-list').DataTable();
-
-});
+$(document).ready(function() {
+    $('#dataTable').DataTable();
+} );

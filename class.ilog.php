@@ -13,7 +13,6 @@ class iLog
 	
 	function __construct()
 	{	
-
 		
 		$this->folder_name = "./logs";
 		

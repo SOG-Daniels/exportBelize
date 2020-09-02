@@ -23,42 +23,60 @@ class Ui {
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
                 
+                    
+                    <!-- FontAwesome -->
+                    <link rel="stylesheet" href="'.BASE_URL.'plugins/fontawesome/font-awesome.min.css">
+                    
+                    <!-- FontAwesome - free -->
+                    <link rel="stylesheet" href="'.BASE_URL.'plugins/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+                    
                     <!-- ** Plugins Needed for the Project ** -->
                     <!-- Bootstrap -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/bootstrap/bootstrap.min.css">
+                    
                     <!-- datatables -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/datatables/dataTables.bootstrap4.min.css">
-                    <!-- FontAwesome -->
-                    <link rel="stylesheet" href="'.BASE_URL.'plugins/fontawesome/font-awesome.min.css">
+
                     <!-- Animation -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/animate.css">
+
                     <!-- Prettyphoto -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/prettyPhoto.css">
+                    
                     <!-- Owl Carousel -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/owl/owl.carousel.css">
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/owl/owl.theme.css">
+
                     <!-- Flexslider -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/flex-slider/flexslider.css">
                     <!-- Flexslider -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/cd-hero/cd-hero.css">
+
                     <!-- Style Swicther -->
                     <link id="style-switch" href="'.BASE_URL.'css/presets/preset3.css" media="screen" rel="stylesheet" type="text/css">
-                
+                    
+                    <!-- File Input Master Plugin css file -->
+                    <link  href="'.BASE_URL.'plugins/bootstrap-fileinput-master/css/fileinput.min.css" media="screen" rel="stylesheet" type="text/css">
+                    
                     <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
                     <!--[if lt IE 9]>
                     <script src="'.BASE_URL.'plugins/html5shiv.js"></script>
                     <script src="'.BASE_URL.'plugins/respond.min.js"></script>
                     <![endif]-->
                 
-                <!-- Main Stylesheet -->
-                <link href="'.BASE_URL.'css/style.css" rel="stylesheet">
-                <link href="'.BASE_URL.'css/customStyles.css" rel="stylesheet">
+                    <!-- Main Stylesheet -->
+                    <link href="'.BASE_URL.'css/style.css" rel="stylesheet">
+                    <link href="'.BASE_URL.'css/customStyles.css" rel="stylesheet">
                 
-                <!--Favicon-->
+                    <!--Favicon-->
                     <!--<link rel="icon" href="img/favicon/favicon-32x32.png" type="image/x-icon" />-->
                     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="img/favicon/favicon-144x144.png">
                     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/favicon/favicon-72x72.png">
                     <link rel="apple-touch-icon-precomposed" href="img/favicon/favicon-54x54.png">
+                    
+                    
+                    <!-- custom javascript set and getfunction for global javascript variables that will be neded-->
+                    <script src="'.BASE_URL.'js/globals.js"></script>
                 
                 </head>
                 <body>
@@ -71,40 +89,31 @@ class Ui {
     public function topbar(){
 
         $moreOptions = '';
+        $profileDropDown = '';
 
-        if (isset($_SESSION['user_id'])){
 
-            if ($_SESSION['user_type'] == 'admin'){
-                //giving admin options
-                $moreOptions .= '
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false">
-                            Admin Options
-                        </a>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" href="'.BASE_URL.'index.php?page=accountRequestList">Account Request List</a>
-                        </div>
-                    </li>
-                
-                ';
+
+        if (!empty($_SESSION) && !empty($_SESSION['PAGES'])){
+            //pages were passed
+            foreach ($_SESSION['PAGES'] as $page){
+               $moreOptions .= '
+                    <a class="dropdown-item" href="'.BASE_URL.'index.php'.$page['link'].'">'.$page['display_name'].'</a>
+               '; 
             }
-            $moreOptions .= '
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false">
-                            Profile
-                        </a>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" href="'.BASE_URL.'index.php?page=profile">My Profile</a>
-                            <a class="dropdown-item" href="'.BASE_URL.'index.php?page=logout">Logout</a>
-                        </div>
-                    </li>
-            
+            $profileDropDown = '
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
+                        Profile
+                    </a>
+                    <div class="dropdown-menu">
+                    '.$moreOptions.'
+                        <a class="dropdown-item" href="'.BASE_URL.'index.php/?page=logout">Logout</a>
+                    </div>
+                </li>
             ';
         }else{
-            // not logged in setting sign in link
-            $moreOptions = '
+            $profileDropDown = '
                 <li class="nav-item pl-md-4 pt-md-2">
                     <a href="'.BASE_URL.'?page=signIn" class="nav-item btn btn-primary">Sign In</a>
                 </li>
@@ -128,15 +137,15 @@ class Ui {
                                     <a class="nav-link" href="'.BASE_URL.'">Home</a></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="'.BASE_URL.'?page=viewProducts">View Products</a></a>
+                                    <a class="nav-link" href="'.BASE_URL.'index.php/?page=viewProducts">View Products</a></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link " href="'.BASE_URL.'?page=aboutUs">About Us</a></a>
+                                    <a class="nav-link " href="'.BASE_URL.'index.php/?page=aboutUs">About Us</a></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="'.BASE_URL.'?page=contact">Contact</a></a>
+                                    <a class="nav-link" href="'.BASE_URL.'index.php/?page=contact">Contact</a></a>
                                 </li>
-                                '.$moreOptions.'
+                                '.$profileDropDown.'
                                 
                             </ul>
                         </div>
@@ -147,7 +156,7 @@ class Ui {
 
         ';
         return $html;
-    }
+    }   
     // return the home page
     public function home(){
         $html = '
@@ -162,7 +171,7 @@ class Ui {
                     </ol>
                     <div class="carousel-inner">
                         <div class="carousel-item active">
-                            <img class="img-fluid" src="images/slider2/bg1.jpg" alt="slider">
+                            <img class="img-fluid" src="'.BASE_URL.'images/slider2/bg1.jpg" alt="slider">
                             <div class="slider-content">
                                 <div class="col-md-12 text-center">
                                     <h2 class="animated2">
@@ -176,7 +185,7 @@ class Ui {
                             </div>
                         </div>
                         <div class="carousel-item">
-                            <img class="img-fluid" src="images/slider2/bg2.jpg" alt="slider">
+                            <img class="img-fluid" src="'.BASE_URL.'images/slider2/bg2.jpg" alt="slider">
                             <div class="slider-content">
                                 <div class="col-md-12 text-center">
                                     <h2 class="animated4">
@@ -190,7 +199,7 @@ class Ui {
                             </div>
                         </div>
                         <div class="carousel-item">
-                            <img class="img-fluid" src="images/slider2/bg3.jpg" alt="slider">
+                            <img class="img-fluid" src="'.BASE_URL.'images/slider2/bg3.jpg" alt="slider">
                             <div class="slider-content">
                                 <div class="col-md-12 text-center">
                                     <h2 class="animated7">
@@ -246,7 +255,7 @@ class Ui {
                         <div class="col-sm-4 isotope-item">
                             <div class="grid">
                                 <figure class="m-0 effect-oscar">
-                                    <img src="images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
+                                    <img src="'.BASE_URL.'images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
                                     <figcaption>
                                         <h3>Product 1</h3>
                                         <a class="link icon-pentagon" href="'.BASE_URL.'?page=productDetail&productId=1"><i class="fa fa-link"></i></a>
@@ -258,7 +267,7 @@ class Ui {
                         <div class="col-sm-4 isotope-item">
                             <div class="grid">
                                 <figure class="m-0 effect-oscar">
-                                    <img src="images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
+                                    <img src="'.BASE_URL.'images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
                                     <figcaption>
                                         <h3>Product 2</h3>
                                         <a class="link icon-pentagon" href="'.BASE_URL.'?page=productDetail&productId=2"><i class="fa fa-link"></i></a>
@@ -270,7 +279,7 @@ class Ui {
                         <div class="col-sm-4 isotope-item">
                             <div class="grid">
                                 <figure class="m-0 effect-oscar">
-                                    <img src="images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
+                                    <img src="'.BASE_URL.'images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
                                     <figcaption>
                                         <h3>Product 3</h3>
                                         <a class="link icon-pentagon" href="'.BASE_URL.'?page=productDetail&productId=3"><i class="fa fa-link"></i></a>
@@ -343,7 +352,7 @@ class Ui {
                         <div class="col-sm-6 isotope-item">
                             <div class="grid">
                                 <figure class="m-0 effect-oscar">
-                                    <img src="images/sectors/agriculture.jpg" alt="">
+                                    <img src="'.BASE_URL.'images/sectors/agriculture.jpg" alt="">
                                     <figcaption>
                                         <h3>AGRICULTURE</h3>
                                         <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=agriculture"><i class="fa fa-link"></i></a>
@@ -355,7 +364,7 @@ class Ui {
                         <div class="col-sm-6 isotope-item">
                             <div class="grid">
                                 <figure class="m-0 effect-oscar">
-                                    <img src="images/sectors/agro-processing.jpg" alt="">
+                                    <img src="'.BASE_URL.'images/sectors/agro-processing.jpg" alt="">
                                     <figcaption>
                                         <h3>AGRO-PROCESSING</h3>
                                         <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=agro-processing"><i class="fa fa-link"></i></a>
@@ -367,7 +376,7 @@ class Ui {
                         <div class="col-sm-4 isotope-item">
                             <div class="grid">
                                 <figure class="m-0 effect-oscar">
-                                    <img src="images/sectors/fishes-and-marine.jpg" alt="">
+                                    <img src="'.BASE_URL.'images/sectors/fishes-and-marine.jpg" alt="">
                                     <figcaption>
                                         <h3>Fishes and Marine</h3>
                                         <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=fishes-and-marine"><i class="fa fa-link"></i></a>
@@ -379,7 +388,7 @@ class Ui {
                         <div class="col-sm-4 isotope-item">
                             <div class="grid">
                                 <figure class="m-0 effect-oscar">
-                                    <img src="images/sectors/energy.jpg" alt="">
+                                    <img src="'.BASE_URL.'images/sectors/energy.jpg" alt="">
                                     <figcaption>
                                         <h3>Energy</h3>
                                         <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=energy"><i class="fa fa-link"></i></a>
@@ -390,7 +399,7 @@ class Ui {
                         <div class="col-sm-4 isotope-item">
                             <div class="grid">
                                 <figure class="m-0 effect-oscar">
-                                    <img src="images/sectors/light-manufacturing.jpg" alt="">
+                                    <img src="'.BASE_URL.'images/sectors/light-manufacturing.jpg" alt="">
                                     <figcaption>
                                         <h3>Light Manufacturing</h3>
                                         <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=light-manufacturing"><i class="fa fa-link"></i></a>
@@ -415,42 +424,42 @@ class Ui {
                         <div id="client-carousel" class="col-sm-12 owl-carousel owl-theme text-center client-carousel">
                             <figure class="m-0 item client_logo">
                                 <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
                                 </a>
                             </figure>
                             <figure class="m-0 item client_logo">
                                 <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
                                 </a>
                             </figure>
                             <figure class="m-0 item client_logo">
                                 <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
                                 </a>
                             </figure>
                             <figure class="m-0 item client_logo">
                                 <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
                                 </a>
                             </figure>
                             <figure class="m-0 item client_logo">
                                 <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
                                 </a>
                             </figure>
                             <figure class="m-0 item client_logo">
                                 <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
                                 </a>
                             </figure>
                             <figure class="m-0 item client_logo">
                                 <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
                                 </a>
                             </figure>
                             <figure class="m-0 item client_logo">
                                 <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
                                 </a>
                             </figure>
                         </div><!-- Owl carousel end -->
@@ -461,10 +470,10 @@ class Ui {
         return $html;
     }
     // return html struture for a banner
-    public function banner($title = null, $currentPage = null){
+    public function banner($title = null, $breadCrumbs = null){
         $html = '
         <div id="banner-area" class="pt-4">
-            <img src="images/banner/banner1.jpg" alt="" />
+            <img src="'.BASE_URL.'images/banner/banner1.jpg" alt="" />
             <div class="parallax-overlay"></div>
             <!-- Subpage title start -->
             <div class="banner-title-content">
@@ -473,7 +482,7 @@ class Ui {
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb justify-content-center">
                             <li class="breadcrumb-item"><a href="'.BASE_URL.'">Home</a></li>
-                            <li class="breadcrumb-item text-white" aria-current="page">'.($currentPage ?? '').'</li>
+                            '.($breadCrumbs ?? '').'
                         </ol>
                     </nav>
                 </div>
@@ -484,26 +493,35 @@ class Ui {
     }
     //returns a search bar
     public function searchBar($data = null){
+        $sectorOptions = '';
+
+        foreach ($data as $sector){
+            $sectorOptions .= '
+                <option value="'.$sector['id'].'">'.$sector['name'].'</option>
+            ';
+        }
         $html = '
             <div class="container pt-3">
                 <div class="row">
-                    <div class="col-md-8 mx-auto">
+                    <div class="col-md-12 mx-auto">
                         <div class="card shadow" >
                             <div class="card-body">
-                                <h3 class="card-title">Search </h3>
+                                <h3 class="card-title">Search For ... </h3>
                                 <div class="row">
-                                    <div class="col-md-6 col-12 ">
+                                    <div class="col-md-4 col-12 ">
                                         <label for="inputEmail3"><h4 class="d-inline">Sector</h4></label>
                                         <div class="input-group">
                                             <select class="form-control">
-                                                <option value="1" selected>all</option>
-                                                <option value="1">Agriculture</option>
-                                                <option value="2">Agro-Processing</option>
-                                                <option value="3">Fisheries & Marine</option>
+                                                <option value="0"> NONE </option>
+                                                '.$sectorOptions.' 
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 col-12 ">
+                                    <div class="col-md-4 col-12 ">
+                                        <label for="search"><h4 class="d-inline">HS Code</h4></label>
+                                                <input type="text" name="hsCode" class="form-control" placeholder="eg. H320" aria-label="" aria-describedby="basic-addon2">
+                                    </div>  
+                                    <div class="col-md-4 col-12 ">
                                         <label for="search"><h4 class="d-inline">Product Name</h4></label>
                                         <div class="input-group">
                                                 <input type="text" class="form-control" placeholder="eg. Habanero Sauce..." aria-label="" aria-describedby="basic-addon2">
@@ -521,13 +539,16 @@ class Ui {
         ';
         return $html;
     }
-    public function viewProducts($products = null){
+    public function viewProducts($data = null){
 
-        $html = $this->banner('Products', 'View Products').$this->searchBar().'
+        $html = $this->banner('Products', 
+            '<li class="breadcrumb-item text-white" aria-current="page">Products</li>'
+            ).$this->searchBar($data['sectors'] ?? '').'
 
                     <!-- Portfolio start -->
                     <section id="main-container" class="portfolio-static">
                         <div class="container">
+                            
                             <div class="row">
                                 <div class="col-md-12 heading">
                                     <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
@@ -535,7 +556,7 @@ class Ui {
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-sm-3 portfolio pb-2">
+                                <div class="col-sm-3 pb-2">
                                     <div class="grid">
                                         <figure class="m-0 effect-oscar">
                                             <img src="images/portfolio/portfolio1.jpg" alt="">
@@ -550,7 +571,7 @@ class Ui {
                                     </div>
                                     <!--/ grid end -->
                                 </div>
-                                <div class="col-sm-3 portfolio pb-2">
+                                <div class="col-sm-3 pb-2">
                                     <div class="grid">
                                         <figure class="m-0 effect-oscar">
                                             <img src="images/portfolio/portfolio2.jpg" alt="">
@@ -574,9 +595,309 @@ class Ui {
         return $html;
 
     }
+    public function viewMyProducts($data = null){
+
+        $rowData = '';
+        $count = 1;
+
+        foreach ($data['products'] as $product){
+            
+            $rowData .= '
+                <tr>
+                    <td>'.$count.'</td>
+                    <td>'.$product['hs_code'].'</td>
+                    <td>'.$product['product_name'].'</td>
+                    <td>'.$product['sector_name'].'</td>
+                    <td><a class="btn btn-link pt-0" href="'.BASE_URL.'index.php/?page=editProduct&productId='.$product['product_id'].'" ><i class="fa fa-edit"></i> Edit</td>
+                    <td><a class="btn btn-link text-danger remove-product pt-0" href="'.BASE_URL.'index.php/?page=removeProduct&productId='.$product['product_id'].'" ><i class="fa fa-trash"></i> Delete</td>
+                </tr>
+            ';
+            $count++;
+        }
+
+        $html = $this->banner('My Products', 
+                              '<li class="breadcrumb-item text-white" aria-current="page">View my Products</li>'
+                              ).'
+
+                    <!-- Portfolio start -->
+                    <section id="main-container" class="portfolio-static pt-4">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12 heading">
+                                    <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
+                                    <h2 class="title classic">My Products</h2>
+                                </div>
+                                <div class="col-12">
+                                    '.($data['message'] ?? '').'
+                                </div>
+                            </div>
+                            <div class="card shadow">
+                                <div class="card-header bg-light-grey pb-2">
+                                    <h4 class="text-dark d-inline">
+                                    PRODUCT LIST
+                                    </h4>
+                                    <span class="float-right">
+                                        <a class="btn bs-btn-primary btn-sm" href="'.BASE_URL.'index.php/?page=addProduct"><i class="fa fa-plus"></i> Add Product</a>
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-strip" width="100%" class="display" id="dataTable" cellspacing="0">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>HS Code</th>
+                                                    <th>Product Name</th>
+                                                    <th>Sector</th>
+                                                    <th>Action</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                '.($rowData ?? '').'
+                                            </tbody>
+                                            <tfoot class="bg-light-grey">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>HS Code</th>
+                                                    <th>Product Name</th>
+                                                    <th>Sector</th>
+                                                    <th>Action</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- Container end -->
+                    </section><!-- Portfolio end -->
+
+        ';
+        return $html;
+
+    }
+    public function editMyProducts($data = null){
+        
+        $sectorOptions = '';
+
+        foreach ($data['sectors'] as $sector){
+            $isSector = '';
+            if ($data['product'][0]['sector_id'] == $sector['id']){
+                $isSector = 'selected';
+            }
+            $sectorOptions .= '
+                <option value="'.$sector['id'].'" '.$isSector.' >'.$sector['name'].'</option>
+            ';
+        }
+
+        $html = $this->banner('Edit Product',
+                              '<li class="breadcrumb-item"><a href="'.BASE_URL.'index.php/?page=myProducts">My Products</a></li>'.
+                              '<li class="breadcrumb-item text-white" aria-current="page">Edit Product</li>'
+                              ).'
+
+                    <script>    
+                        setInitialPreview('.json_encode($data['initialPrev']).');
+                        setInitialPreviewConfig('.json_encode($data['initialPrevConfig']).');
+                    </script>
+
+                    <!-- Portfolio start -->
+                    <section id="main-container" class="portfolio-static pt-4">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12 heading">
+                                    <span class="title-icon classic float-left"><i class="fa fa-edit"></i></span>
+                                    <h2 class="title classic">Edit My Product</h2>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="accordion" id="accordion">
+                                        <div class="card border rounded mb-2">
+                                            <form id="my-product-1" action="'.BASE_URL.'" method="POST">
+                                                <div class="card-header p-0 bg-light-grey">
+                                                    <a class="h4 mb-0 font-weight-bold text-uppercase d-block p-2 pl-5 text-dark" data-toggle="collapse" data-target="#collapseOne"
+                                                        aria-expanded="true" aria-controls="collapseOne">Product Info
+                                                    </a>
+                                                </div>
+                                                <div id="collapseOne" class="collapse show" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                            <div class="row">
+                                                                <div class="col-12 col-md-4">
+                                                                    <div class="form-group">
+                                                                        <label for="prodName" class="">Product Name</label>
+                                                                        <input type="text" class="form-control" name="prodName" id="" placeholder="Enter a product name..." value="'.($data['product'][0]['product_name']).'" required>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-12 col-md-4">
+                                                                    <div class="form-group">
+                                                                        <label for="HScode" class="">Hs Code</label>
+                                                                        <input type="text" class="form-control" name="prodName" id="" placeholder="Enter the product\'s Hs Code..." value="'.($data['product'][0]['hs_code']).'" required>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-12 col-md-4">
+                                                                    <div class="form-group">
+                                                                        <label for="">Sector</label>
+                                                                        <select name="sector[][sectorId]" class="form-control">
+                                                                            '.$sectorOptions.'
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-12 col-md-12">
+                                                                    <div class="form-group">
+                                                                        <label for="prodName" class="">Product Description</label>
+                                                                        <textarea class="form-control" name="productDescription" placeholder="Enter something about the product..." rows="3">'.($data['product'][0]['product_description']).'</textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <span class="float-right"><button class="btn btn-success"><i class="fa fa-save"></i> Save</button> </span>
+                                                                </div>
+                                                            </div>
+                                                        </form> 
+                                                
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <!--/ Panel 1 end-->
+
+                                        <div class="card border rounded mb-2">
+                                            <div class="card-header p-0 bg-light-grey">
+                                                <a class="h4 collapsed mb-0 font-weight-bold text-uppercase d-block p-2 pl-5 text-dark" data-toggle="collapse" data-target="#collapseTwo"
+                                                    aria-expanded="true" aria-controls="collapseTwo">
+                                                    Product Images
+                                                </a>
+                                            </div>
+                                            <div id="collapseTwo" class="collapse" data-parent="#accordion">
+                                                <div class="card-body">
+                                                    <form id="my-product-1" action="'.BASE_URL.'" method="POST">
+                                                        <div class="row">
+                                                            <div class="col-12 col-md-12">
+                                                                <div class="file-loading">
+                                                                    <input id="input-fa" name="input-fa[]" type="file" data-classButton="btn btn-secondary" accept=".jpg,.png,.jpeg" multiple>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </form> 
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/ Panel 2 end-->
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- Container end -->
+                    </section><!-- Portfolio end -->
+
+        ';
+        return $html;
+
+    }
+    public function addProduct($data = null){
+        
+        $sectorOptions = '';
+
+        foreach ($data['sectors'] as $sector){
+            $sectorOptions .= '
+                <option value="'.$sector['id'].'">'.$sector['name'].'</option>
+            ';
+        }
+
+        $html = $this->banner('Add Product',
+                              '<li class="breadcrumb-item"><a href="'.BASE_URL.'index.php/?page=myProducts">My Products</a></li>'.
+                              '<li class="breadcrumb-item text-white" aria-current="page">Add Product Form</li>'
+                              ).'
+
+                    <!-- Portfolio start -->
+                    <section id="main-container" class="portfolio-static pt-4">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12 heading">
+                                    <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
+                                    <h2 class="title classic">Add Product</h2>
+                                </div>
+                                <div class="col-12">
+                                    '.($data['message'] ?? '').'
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="accordion" id="accordion">
+                                        <div class="card border rounded mb-2">
+                                            <form action="'.BASE_URL.'" method="POST" enctype="multipart/form-data">
+                                                <input type="hidden" name="action" value="addProduct">
+                                                <div class="card-header p-0 bg-light-grey">
+                                                    <a class="h4 mb-0 font-weight-bold text-uppercase d-block p-2 pl-5 text-dark" data-toggle="collapse" data-target="#collapseOne"
+                                                        aria-expanded="true" aria-controls="collapseOne">Product Info
+                                                    </a>
+                                                </div>
+                                                <div id="collapseOne" class="collapse show" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                            <div class="row">
+                                                                <div class="col-12 col-md-4">
+                                                                    <div class="form-group">
+                                                                        <label for="prodName" class="">Product Name</label>
+                                                                        <input type="text" class="form-control" name="prodName" id="" placeholder="Enter a product name..." value="" required>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-12 col-md-4">
+                                                                    <div class="form-group">
+                                                                        <label for="prodName" class="">HS Code</label>
+                                                                        <input type="text" class="form-control" name="hs_code" id="" placeholder="Enter the product\'s HS Code..." value="" >
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-12 col-md-4">
+                                                                    <div class="form-group">
+                                                                        <label for="">Sector</label>
+                                                                        <select name="sectorId" class="form-control">
+                                                                            '.$sectorOptions.'
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-12 col-md-12">
+                                                                    <div class="form-group">
+                                                                        <label for="prodName" class="">Product Description</label>
+                                                                        <textarea class="form-control" name="productDescription" placeholder="Enter something about the product..." rows="3"></textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-12 col-md-12">
+                                                                    <div class="file-loading">
+                                                                        <input id="add-product-images" name="file[]" type="file" data-classButton="btn btn-secondary" accept=".jpg,.png,.jpeg" multiple>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row pt-4">
+                                                                <div class="col-12">
+                                                                    <span class="float-right"><button class="btn btn-success"><i class="fa fa-check"></i> Add Product</button> </span>
+                                                                </div>
+                                                            </div>
+                                                        </form> 
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <!--/ Panel 1 end-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- Container end -->
+                    </section><!-- Portfolio end -->
+
+        ';
+        return $html;
+
+    }
     public function productDetails(){
         $html = '
-            '.$this->banner('Product Name', 'Product Details').'   
+            '.$this->banner('Product Name', 
+            '<li class="breadcrumb-item text-white" aria-current="page">Product Name</li>'
+            ).'   
 
             <!-- Portfolio item start -->
             <section id="portfolio-item">
@@ -686,10 +1007,12 @@ class Ui {
         ';
         return $html;
     }
-    public function companyDetails(){
+    public function companyDetails($data = array()){
         $html = '
             
-            '.$this->banner('Company Name', 'Comapany Details').'   
+            '.$this->banner($data['companyDetails'][0]['name'], 
+            '<li class="breadcrumb-item text-white" aria-current="page">'.$data['companyDetails'][0]['name'].'</li>'
+            ).'   
         
             <div class="row about-wrapper-bottom">
                 <div class="col-md-6 ts-padding about-img">
@@ -898,7 +1221,9 @@ class Ui {
     }   
     public function aboutUs(){
         $html = '
-            '.$this->banner('About Us','About Us').'
+            '.$this->banner('About Us',
+            '<li class="breadcrumb-item text-white" aria-current="page">About Us</li>'
+            ).'
             
             <!-- Main container start -->
             <section id="main-container">
@@ -1117,7 +1442,9 @@ class Ui {
     public function pageNotFound(){
         $html = '
        
-            '.$this->banner('404 Page not Found', '404 Error').'   
+            '.$this->banner('404 Page not Found', 
+            '<li class="breadcrumb-item text-white" aria-current="page">404 Error</li>'
+            ).'   
 
         
         <!-- Main container start -->
@@ -1147,7 +1474,9 @@ class Ui {
     public function signIn($message = null){
              
         $html = '
-            '.$this->banner('Sign In', 'Sign In').'
+            '.$this->banner('Sign In', 
+            '<li class="breadcrumb-item text-white" aria-current="page">Sign In</li>'
+            ).'
             <section class="buy-pro" style="padding-top: 20px;">
                 <div class="container">
                     <div class="row">
@@ -1278,7 +1607,7 @@ class Ui {
                     <label for="socialContact">'.$socialContact['name'].' Link <sub>(Optional)</sub></label>
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="'.$socialContact['icon'].'"></i></span>
+                            <span class="input-group-text"><i class="'.$socialContact['icon'].' fa-lg"></i></span>
                         </div>
                         <input type="hidden" name="socialContacts['.$index.'][socialContactListId]" value="'.$id.'">
                         <input type="hidden" name="socialContacts['.$index.'][companyId]" value="'.$data['companyDetails'][0]['id'].'">
@@ -1292,9 +1621,11 @@ class Ui {
         }
      
         //spliting full name
-        $fullName = explode(' ',$_SESSION['full_name']);
+        $fullName = explode(' ',$_SESSION['USERDATA']['full_name']);
 
-        $html = $this->banner('My Profile', 'Profile').'
+        $html = $this->banner('My Profile', 
+            '<li class="breadcrumb-item text-white" aria-current="page">Profile</li>'
+        ).'
             <section class="buy-pro" style="padding-top: 20px;">
                 <div class="container">
                     <div class="row">
@@ -1324,7 +1655,7 @@ class Ui {
                                             <div class="col-12 mb-3">
                                                 <label for="email">Email</label>
                                                 <div class="input-group">
-                                                    <p>'.$_SESSION['email'].'</p>
+                                                    <p>'.$_SESSION['USERDATA']['email'].'</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -1501,7 +1832,7 @@ class Ui {
         $interestSelect = '';
         $hiddenInterestIds = '';
         $sectorOptions = '';
-        $fullName = explode(' ',$_SESSION['full_name']);
+        $fullName = explode(' ',$_SESSION['USERDATA']['full_name']);
         $num = 1;
 
         //building interest select with options 
@@ -1548,7 +1879,9 @@ class Ui {
             $num++;
         }
 
-        $html = $this->banner('My Profile', 'Profile').'
+        $html = $this->banner('My Profile', 
+            '<li class="breadcrumb-item text-white" aria-current="page">Profile</li>'
+        ).'
             <section class="buy-pro" style="padding-top: 20px;">
                 <div class="container">
                     <div class="row">
@@ -1580,7 +1913,7 @@ class Ui {
                                             <div class="col-md-6 col-12 mb-3">
                                                 <label for="email">Email</label>
                                                 <div class="input-group">
-                                                    <p class="pt-2">'.$_SESSION['email'].'</p>
+                                                    <p class="pt-2">'.$_SESSION['USERDATA']['email'].'</p>
                                                 </div>
                                             </div>
                                             <div class="col-md-6 col-12 mb-3">
@@ -1605,7 +1938,9 @@ class Ui {
     }  
     // displays admin profile
     public function adminProfile(){
-        $html = $this->banner('My Profile', 'Profile').'
+        $html = $this->banner('My Profile', 
+            '<li class="breadcrumb-item text-white" aria-current="page">Profile</li>'
+        ).'
             <section class="buy-pro" style="padding-top: 20px;">
                 <div class="container">
                     <div class="row">
@@ -1660,7 +1995,9 @@ class Ui {
     }
     public function companyRegistrationForm(){
         $html = '
-            '.$this->banner('Company Registration Form', 'Registration Form').' 
+            '.$this->banner('Company Registration Form',
+                '<li class="breadcrumb-item text-white" aria-current="page">Registration Form</li>'
+             ).' 
                 <section class="buy-pro" style="padding-top: 20px;">
                 <div class="container">
                     <div class="row">
@@ -1762,9 +2099,10 @@ class Ui {
             ';
         }
 
-
         $html = '
-            '.$this->banner('Buyer Registration Form', 'Registration Form').'  
+            '.$this->banner('Buyer Registration Form', 
+                '<li class="breadcrumb-item text-white" aria-current="page">Registration Form</li>'
+            ).'  
 
             <section class="buy-pro" style="padding-top: 20px;">
                 <div class="container">
@@ -1778,7 +2116,7 @@ class Ui {
                                         <input type="hidden" name="action" value="buyerRegistration">
                                         <div class="form-row">
                                             <div class="col-md-6 mb-3">
-                                            <label for="validationDefault01">First name</label>
+                                            <label for="firstName">First name</label>
                                             <input type="text" class="form-control" id="" name="firstName" placeholder="Enter your First name..." value="" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
@@ -1874,7 +2212,9 @@ class Ui {
     }
     public function thankYou(){
         $html = '
-            '.$this->banner('Thank you for ').'
+            '.$this->banner('Thank you for ',
+                '<li class="breadcrumb-item text-white" aria-current="page">Thank You</li>'
+             ).'
             <section class="buy-pro" style="padding-top: 20px;">
                 <div class="container">
                     <div class="row">
@@ -1966,7 +2306,9 @@ class Ui {
     }
     public function contact(){
         $html = '
-            '.$this->banner('Contact Us', 'Contact Us').'   
+            '.$this->banner('Contact Us', 
+                '<li class="breadcrumb-item text-white" aria-current="page">Contact Us</li>'
+            ).'   
 
         <!-- Main container start -->
         <section id="main-container">
@@ -2049,16 +2391,16 @@ class Ui {
                         <ul class="dark unstyled">
                             <li>
                                 <a title="Facebook" href="https://www.facebook.com/BELTRAIDE/">
-                                    <span class="icon-pentagon wow bounceIn"><i class="fa fa-facebook"></i></span>
+                                    <span class="icon-pentagon wow bounceIn"><i class="fab fa-facebook-f fa-lg"></i></span>
                                 </a>
                                 <a title="Twitter" href="https://twitter.com/Beltraide">
-                                    <span class="icon-pentagon wow bounceIn"><i class="fa fa-twitter"></i></span>
+                                    <span class="icon-pentagon wow bounceIn"><i class="fab fa-twitter"></i></span>
                                 </a>
                                 <a title="Google+" href="https://instagram.com/beltraide/">
-                                    <span class="icon-pentagon wow bounceIn"><i class="fa fa-instagram"></i></span>
+                                    <span class="icon-pentagon wow bounceIn"><i class="fab fa-instagram fa-lg"></i></span>
                                 </a>
                                 <a title="Google+" href="https://www.linkedin.com/company/beltraide/">
-                                    <span class="icon-pentagon wow bounceIn"><i class="fa fa-linkedin"></i></span>
+                                    <span class="icon-pentagon wow bounceIn"><i class="fab fa-linkedin-in fa-lg"></i></span>
                                 </a>
                             </li>
                         </ul>
@@ -2089,35 +2431,64 @@ class Ui {
         </script>
         <!-- jQuery -->
         <script src="'.BASE_URL.'plugins/jQuery/jquery.min.js"></script>
+        
         <!-- Bootstrap JS -->
         <script src="'.BASE_URL.'plugins/bootstrap/bootstrap.min.js"></script>
-        <!-- Datatables JS -->
-        <script src="'.BASE_URL.'plugins/datatables/dataTables.bootstrap4.min.js"></script>
-        <script src="'.BASE_URL.'plugins/datatables/jQuery.dataTables.min.js"></script>
+
         <!-- Style Switcher -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/style-switcher.js"></script>
+       
         <!-- Owl Carousel -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/owl/owl.carousel.js"></script>
+        
         <!-- PrettyPhoto -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/jquery.prettyPhoto.js"></script>
+        
         <!-- Bxslider -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/flex-slider/jquery.flexslider.js"></script>
+       
         <!-- CD Hero slider -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/cd-hero/cd-hero.js"></script>
+        
         <!-- Isotope -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/isotope.js"></script>
         <script type="text/javascript" src="'.BASE_URL.'plugins/ini.isotope.js"></script>
+        
         <!-- Wow Animation -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/wow.min.js"></script>
+        
         <!-- Eeasing -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/jquery.easing.1.3.js"></script>
+        
         <!-- Counter -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/jquery.counterup.min.js"></script>
+        
         <!-- Waypoints -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/waypoints.min.js"></script>
+        
         <!-- google map -->
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcABaamniA6OL5YvYSpB3pFMNrXwXnLwU&libraries=places"></script>
         <script src="'.BASE_URL.'plugins/google-map/gmap.js"></script>
+        
+        <!-- Datatables JS -->
+        <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+        <script src="'.BASE_URL.'plugins/datatables/jQuery.dataTables.min.js"></script>
+        <script src="'.BASE_URL.'plugins/datatables/dataTables.bootstrap4.min.js"></script>
+        
+        <!--<script src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.bootstrap4.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>-->
+        
+        <!-- File Input Master Scripts -->
+        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/piexif.min.js"></script>
+        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/sortable.min.js"></script>
+        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/purify.min.js"></script>
+
+        <!-- File Input Master Script -->
+        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/fileinput.min.js"></script>
+        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/themes/fas/theme.js"></script>
+        <script src="'.BASE_URL.'js/jQuery-file-upload.js"></script>
+        
         
         <!-- Main Script -->
         <script src="'.BASE_URL.'js/script.js"></script>
@@ -2127,6 +2498,7 @@ class Ui {
         
         <!-- custom javascript function definition Script -->
         <script src="'.BASE_URL.'js/custom.js"></script>
+
         
         </body>
         

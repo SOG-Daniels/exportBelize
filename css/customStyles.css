@@ -15,3 +15,54 @@ figure.effect-oscar img {
     padding-bottom: 0px;
     margin-bottom:  0px;
 }
+.bg-light-grey{
+  background-color: 	#E8E8E8;
+}
+.bs-text-primary{
+  color: #0275d8;
+}
+.bg-export-red{
+  background-color: 	#871618;
+}
+
+.bs-btn-primary {
+  color: #fff;
+  background-color: #428bca;
+  border-color: #357ebd;
+}
+.bs-btn-primary:hover,
+.bs-btn-primary:focus,
+.bs-btn-primary:active,
+.bs-btn-primary.active,
+.open .dropdown-toggle.bs-btn-primary {
+  color: #fff;
+  background-color: #3276b1;
+  border-color: #285e8e;
+}
+.bs-btn-primary:active,
+.bs-btn-primary.active,
+.open .dropdown-toggle.bs-btn-primary {
+  background-image: none;
+}
+.bs-btn-primary.disabled,
+.bs-btn-primary[disabled],
+fieldset[disabled] .bs-btn-primary,  
+.bs-btn-primary.disabled:hover,
+.bs-btn-primary[disabled]:hover,
+fieldset[disabled] .bs-btn-primary:hover,  
+.bs-btn-primary.disabled:focus,
+.bs-btn-primary[disabled]:focus,
+fieldset[disabled] .bs-btn-primary:focus,  
+.bs-btn-primary.disabled:active,
+.bs-btn-primary[disabled]:active,
+fieldset[disabled] .bs-btn-primary:active,  
+.bs-btn-primary.disabled.active,
+.bs-btn-primary[disabled].active,
+fieldset[disabled] .bs-btn-primary.active {  
+  background-color: #428bca;
+  border-color: #357ebd;
+}
+.bs-btn-primary .badge {
+  color: #428bca;
+  background-color: #fff;
+}
