@@ -77,6 +77,9 @@ var readURL = function(input) {
 
 $(document).ready(function(){
 
+  //Setting bootstrap tooltips 
+  $('[data-toggle="tooltip"]').tooltip()
+
   //disables all inputs inside myprofile form
   $("#myProfile :input").prop("disabled", true);
   //diables all inputs in myCompanyProfile form
@@ -86,7 +89,8 @@ $(document).ready(function(){
 
 
   // for profile edit button clicked
-  $('#editMyProfile').click(function(){
+  $('#editMyProfile').click(function(e){
+    e.preventDefault();
 
     $(this).hide();
     $("#saveMyProfile").show();
@@ -109,7 +113,6 @@ $(document).ready(function(){
       console.log(data);
     });
     
-    // $('#my-compnay-profile').submit();
   });
   //for my company profile edit btn click
   $('#editCompanyProfile').click(function(){
@@ -233,4 +236,16 @@ $(document).ready(function(){
 
   });
 
+  $('.remove-product').click(function(e){
+    e.preventDefault();
+
+    var deleteLink = $(this).attr('href');
+    var productName = $(this).parent().parent()[0].children[2].innerText;
+    
+    $('#deleteProductHref').attr('href', deleteLink);
+    $('#deleteProductTitle').text(productName);
+
+    $('#deleteProductModal').modal('show');
+
+  });
 });

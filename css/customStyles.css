@@ -66,3 +66,7 @@ fieldset[disabled] .bs-btn-primary.active {
   color: #428bca;
   background-color: #fff;
 }
+.dropdown-menu {
+  width: 215px;
+  max-width: 225px;
+}

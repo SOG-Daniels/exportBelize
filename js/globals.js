@@ -2,6 +2,7 @@
 var initialPreview = {};
 var initialPreviewConfig = {};
 var BASE_URL = '';
+var uploadExtraData = {};
 
 function setInitialPreview(val){
     initialPreview = val;
@@ -11,6 +12,12 @@ function setInitialPreviewConfig(val){
 }
 function setBaseUrl(val){
     BASE_URL = val;
+}
+function setUploadExtraData(val){
+    uploadExtraData = val;
+}
+function getUploadExtraData(){
+    return uploadExtraData;
 }
 function getInitialPreview(){
     return initialPreview;

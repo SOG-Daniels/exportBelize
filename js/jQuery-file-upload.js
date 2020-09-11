@@ -3,7 +3,8 @@
 $(function () {
     $("#input-fa").fileinput({
         theme: "fas",
-        uploadUrl: BASE_URL+"upload-file/",
+        uploadUrl: BASE_URL+"index.php/",
+        uploadExtraData: getUploadExtraData(),
         uploadAsync: false,
         initialPreviewAsData: true, // identify if you are sending preview data only and not the raw markup
         initialPreviewFileType: 'image', // image is the default and can be overridden in config below
@@ -14,7 +15,8 @@ $(function () {
         maxFileSize: 50000,
         initialCaption: "Acceptable files are, \"jpg\", \".jpeg\" and \".png\"",//,
         initialPreview: getInitialPreview(), //existingDocs.initialPreview,
-        initialPreviewConfig: getInitialPreviewConfig()//existingDocs.initialPreviewConfig       
+        initialPreviewConfig: getInitialPreviewConfig(),//existingDocs.initialPreviewConfig       
+        showUpload: false
     });
     
     // Confirmation prompt for removing an uploaded file

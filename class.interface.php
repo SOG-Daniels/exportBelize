@@ -24,15 +24,17 @@ class Ui {
                 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
                 
                     
+                    
+                    <!-- ** Plugins Needed for the Project ** -->
+                    <!-- Bootstrap -->
+                    <link rel="stylesheet" href="'.BASE_URL.'plugins/bootstrap/bootstrap.min.css">
+                    
+                    
                     <!-- FontAwesome -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/fontawesome/font-awesome.min.css">
                     
                     <!-- FontAwesome - free -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-                    
-                    <!-- ** Plugins Needed for the Project ** -->
-                    <!-- Bootstrap -->
-                    <link rel="stylesheet" href="'.BASE_URL.'plugins/bootstrap/bootstrap.min.css">
                     
                     <!-- datatables -->
                     <link rel="stylesheet" href="'.BASE_URL.'plugins/datatables/dataTables.bootstrap4.min.css">
@@ -56,8 +58,8 @@ class Ui {
                     <link id="style-switch" href="'.BASE_URL.'css/presets/preset3.css" media="screen" rel="stylesheet" type="text/css">
                     
                     <!-- File Input Master Plugin css file -->
-                    <link  href="'.BASE_URL.'plugins/bootstrap-fileinput-master/css/fileinput.min.css" media="screen" rel="stylesheet" type="text/css">
-                    
+                    <link  href="'.BASE_URL.'plugins/bootstrap-fileinput-master/css/fileinput.min.css" media="all" rel="stylesheet" type="text/css">
+
                     <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
                     <!--[if lt IE 9]>
                     <script src="'.BASE_URL.'plugins/html5shiv.js"></script>
@@ -75,8 +77,9 @@ class Ui {
                     <link rel="apple-touch-icon-precomposed" href="img/favicon/favicon-54x54.png">
                     
                     
-                    <!-- custom javascript set and getfunction for global javascript variables that will be neded-->
+                    <!-- custom javascript set and getfunction for global javascript variables that will be needed-->
                     <script src="'.BASE_URL.'js/globals.js"></script>
+                    
                 
                 </head>
                 <body>
@@ -98,7 +101,7 @@ class Ui {
             foreach ($_SESSION['PAGES'] as $page){
                $moreOptions .= '
                     <a class="dropdown-item" href="'.BASE_URL.'index.php'.$page['link'].'">'.$page['display_name'].'</a>
-               '; 
+                '; 
             }
             $profileDropDown = '
                 <li class="nav-item dropdown">
@@ -108,7 +111,7 @@ class Ui {
                     </a>
                     <div class="dropdown-menu">
                     '.$moreOptions.'
-                        <a class="dropdown-item" href="'.BASE_URL.'index.php/?page=logout">Logout</a>
+                        <a class="dropdown-item" data-toggle="modal" data-target="#logoutModal" href="#">Logout</a>
                     </div>
                 </li>
             ';
@@ -412,7 +415,7 @@ class Ui {
             </section><!-- Portfolio end -->
 
             <!-- Featured companies -->
-            <section id="team" class="team">
+            <section id="teams" class="teams">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12 heading">
@@ -466,6 +469,7 @@ class Ui {
                     </div><!-- Main row end -->
                 </div>
             </section>
+   
         ';
         return $html;
     }
@@ -595,7 +599,7 @@ class Ui {
         return $html;
 
     }
-    public function viewMyProducts($data = null){
+    public function productList($data = null){
 
         $rowData = '';
         $count = 1;
@@ -677,6 +681,99 @@ class Ui {
         return $html;
 
     }
+    public function companyList($data = null){
+
+        $trData = '';
+        $rowData = '';
+        $count = 1;
+
+        foreach ($data['companyList'] as $company){
+            
+            $trData .= '
+                <tr>
+                    <td>'.$count.'</td>
+                    <td>'.$company['name'].'</td>
+                    <td>'.$company['email'].'</td>
+                    <td>'.$company['phone'].'</td>
+                    <td>'.$company['district'].'</td>
+                    <td>'.$company['ctv'].'</td>
+                    <td>'.$company['street'].'</td>
+                    <td>
+                    <a class="btn btn-link pt-0" href="'.BASE_URL.'index.php/?page=editCompanyt&companyId='.$company['id'].'" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fa fa-edit"></i></a>
+                    &nbsp;
+                    <a class="btn btn-link text-danger remove-product pt-0" href="'.BASE_URL.'index.php/?page=removeCompany&companyId='.$company['id'].'" data-toggle="tooltip" data-placement="top" title="Delete"><i class="fa fa-trash"></i></a>
+                    </td>
+                </tr>
+            ';
+            $count++;
+        }
+
+        $html = $this->banner('Company List', 
+                              '<li class="breadcrumb-item text-white" aria-current="page">Company List</li>'
+                              ).'
+
+                    <!-- Portfolio start -->
+                    <section id="main-container" class="portfolio-static pt-4">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12 heading">
+                                    <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
+                                    <h2 class="title classic">Company List</h2>
+                                </div>
+                                <div class="col-12">
+                                    '.($data['message'] ?? '').'
+                                </div>
+                            </div>
+                            <div class="card shadow">
+                                <div class="card-header bg-light-grey pb-2">
+                                    <h4 class="text-dark d-inline">
+                                    COMPANYS
+                                    </h4>
+                                    <!--<span class="float-right">
+                                        <a class="btn bs-btn-primary btn-sm" href="'.BASE_URL.'index.php/?page=addProduct"><i class="fa fa-plus"></i> Add Product</a>
+                                    </span>-->
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-strip" width="100%" class="display" id="dataTable" cellspacing="0">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Company Name</th>
+                                                    <th>Email</th>
+                                                    <th>Phone Number</th>
+                                                    <th>District</th>
+                                                    <th>C/T/V</th>
+                                                    <th>Street</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                '.($trData ?? '').'
+                                            </tbody>
+                                            <tfoot class="bg-light-grey">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Company Name</th>
+                                                    <th>Email</th>
+                                                    <th>Phone Number</th>
+                                                    <th>District</th>
+                                                    <th>C/T/V</th>
+                                                    <th>Street</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- Container end -->
+                    </section><!-- Portfolio end -->
+
+        ';
+        return $html;
+
+    }
     public function editMyProducts($data = null){
         
         $sectorOptions = '';
@@ -699,6 +796,7 @@ class Ui {
                     <script>    
                         setInitialPreview('.json_encode($data['initialPrev']).');
                         setInitialPreviewConfig('.json_encode($data['initialPrevConfig']).');
+                        setUploadExtraData('.json_encode($data['uploadExtraData']).');
                     </script>
 
                     <!-- Portfolio start -->
@@ -709,12 +807,17 @@ class Ui {
                                     <span class="title-icon classic float-left"><i class="fa fa-edit"></i></span>
                                     <h2 class="title classic">Edit My Product</h2>
                                 </div>
+                                <div class="col-12">
+                                    '.($data['message'] ?? '').'
+                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-12">
                                     <div class="accordion" id="accordion">
                                         <div class="card border rounded mb-2">
                                             <form id="my-product-1" action="'.BASE_URL.'" method="POST">
+                                                <input type="hidden" name="action" value="saveProductDetails">
+                                                <input type="hidden" name="productId" value="'.$data['product'][0]['product_id'].'">
                                                 <div class="card-header p-0 bg-light-grey">
                                                     <a class="h4 mb-0 font-weight-bold text-uppercase d-block p-2 pl-5 text-dark" data-toggle="collapse" data-target="#collapseOne"
                                                         aria-expanded="true" aria-controls="collapseOne">Product Info
@@ -732,13 +835,13 @@ class Ui {
                                                                 <div class="col-12 col-md-4">
                                                                     <div class="form-group">
                                                                         <label for="HScode" class="">Hs Code</label>
-                                                                        <input type="text" class="form-control" name="prodName" id="" placeholder="Enter the product\'s Hs Code..." value="'.($data['product'][0]['hs_code']).'" required>
+                                                                        <input type="text" class="form-control" name="hs_code" id="" placeholder="Enter the product\'s Hs Code..." value="'.($data['product'][0]['hs_code']).'" required>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-12 col-md-4">
                                                                     <div class="form-group">
                                                                         <label for="">Sector</label>
-                                                                        <select name="sector[][sectorId]" class="form-control">
+                                                                        <select name="sectorId" class="form-control">
                                                                             '.$sectorOptions.'
                                                                         </select>
                                                                     </div>
@@ -772,11 +875,11 @@ class Ui {
                                             </div>
                                             <div id="collapseTwo" class="collapse" data-parent="#accordion">
                                                 <div class="card-body">
-                                                    <form id="my-product-1" action="'.BASE_URL.'" method="POST">
+                                                    <form id="product-img" action="'.BASE_URL.'" method="POST">
                                                         <div class="row">
                                                             <div class="col-12 col-md-12">
                                                                 <div class="file-loading">
-                                                                    <input id="input-fa" name="input-fa[]" type="file" data-classButton="btn btn-secondary" accept=".jpg,.png,.jpeg" multiple>
+                                                                    <input id="input-fa" name="files[]" type="file" data-classButton="btn btn-secondary" accept=".jpg,.png,.jpeg" multiple>
                                                                 </div>
                                                             </div>
 
@@ -868,7 +971,7 @@ class Ui {
                                                             <div class="row">
                                                                 <div class="col-12 col-md-12">
                                                                     <div class="file-loading">
-                                                                        <input id="add-product-images" name="file[]" type="file" data-classButton="btn btn-secondary" accept=".jpg,.png,.jpeg" multiple>
+                                                                        <input id="add-product-images" name="files[]" type="file" data-classButton="btn btn-secondary" accept=".jpg,.png,.jpeg" multiple>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1938,6 +2041,9 @@ class Ui {
     }  
     // displays admin profile
     public function adminProfile(){
+
+        $fullname = explode(' ', $_SESSION['USERDATA']['full_name']);
+
         $html = $this->banner('My Profile', 
             '<li class="breadcrumb-item text-white" aria-current="page">Profile</li>'
         ).'
@@ -1954,23 +2060,23 @@ class Ui {
                                     </button>
                                 <div class="card-body">
                                     <h3 class=""><i class="fa fa-user fa-lg title-icon text-primary"></i> Personal Profile</h3>
-                                    <form id="myProfile">
-                                        <input type="hidden" name="action" value="buyerRegistration">
+                                    <form id="myProfile" action="'.BASE_URL.'">
+                                        <input type="hidden" name="ajaxRequest" value="saveMyProfile">
                                         <div class="form-row">
                                             <div class="col-md-6 mb-3">
                                             <label for="validationDefault01">First name</label>
-                                            <input type="text" class="form-control" id="" name="firstName" placeholder="Enter your First name..." value="" required>
+                                            <input type="text" class="form-control" id="" name="firstName" placeholder="Enter your first name..." value="'.$fullname[0].'" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
                                             <label for="validationDefault02">Last name</label>
-                                            <input type="text" class="form-control" id="" name="lastName" placeholder="Enter your last name..." value="" required>
+                                            <input type="text" class="form-control" id="" name="lastName" placeholder="Enter your last name..." value="'.$fullname[1].'" required>
                                             </div>
                                         </div>
                                         <div class="form-row">
                                             <div class="col-md-12 col-12 mb-3">
                                                 <label for="email">Email</label>
                                                 <div class="input-group">
-                                                    <p>yourname@someemail.com</p>
+                                                    <p>'.$_SESSION['USERDATA']['email'].'</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -2422,6 +2528,48 @@ class Ui {
             <!--/ Container end -->
         </section>
         <!--/ Footer end -->
+        
+        <!----START OF BOOTSTRAP MODALS ---->
+        <!-- Logout Modal-->
+        <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light-grey">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-danger" href="'.BASE_URL.'index.php/?page=logout">Logout</a>
+                </div>
+            </div>
+            </div>
+        </div>
+        <!-- Delete Product Modal-->
+        <div class="modal fade" id="deleteProductModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light-grey">
+                <h5 class="modal-title text-dark" id="">Delete Product "<span class="font-weight-bold text-capitalize" id="deleteProductTitle"></span>" ?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                </div>
+                <div class="modal-body">Confirm by clicking the "<b>Delete</b>" button below if you are sure you want to remove it from the list.</div>
+                <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a id="deleteProductHref" class="btn btn-danger" href="">Delete</a>
+                </div>
+            </div>
+            </div>
+        </div>
+
+
+
+        <!-- END OF BOOSTRAP MODALS-->
     
         </div><!-- Body inner end -->
         <script> 
@@ -2430,7 +2578,17 @@ class Ui {
         
         </script>
         <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
         <script src="'.BASE_URL.'plugins/jQuery/jquery.min.js"></script>
+        
+        
+        <!-- File Input Master Scripts -->
+        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/piexif.min.js"></script>
+        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/sortable.min.js"></script>
+        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/purify.min.js"></script>
+        
+        <!-- Popper.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
         
         <!-- Bootstrap JS -->
         <script src="'.BASE_URL.'plugins/bootstrap/bootstrap.min.js"></script>
@@ -2466,12 +2624,11 @@ class Ui {
         <!-- Waypoints -->
         <script type="text/javascript" src="'.BASE_URL.'plugins/waypoints.min.js"></script>
         
-        <!-- google map -->
+        <!-- google map >
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcABaamniA6OL5YvYSpB3pFMNrXwXnLwU&libraries=places"></script>
-        <script src="'.BASE_URL.'plugins/google-map/gmap.js"></script>
+        <script src="'.BASE_URL.'plugins/google-map/gmap.js"></script>-->
         
         <!-- Datatables JS -->
-        <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
         <script src="'.BASE_URL.'plugins/datatables/jQuery.dataTables.min.js"></script>
         <script src="'.BASE_URL.'plugins/datatables/dataTables.bootstrap4.min.js"></script>
         
@@ -2479,16 +2636,10 @@ class Ui {
         <script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.bootstrap4.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>-->
         
-        <!-- File Input Master Scripts -->
-        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/piexif.min.js"></script>
-        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/sortable.min.js"></script>
-        <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/plugins/purify.min.js"></script>
-
         <!-- File Input Master Script -->
         <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/fileinput.min.js"></script>
         <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/themes/fas/theme.js"></script>
         <script src="'.BASE_URL.'js/jQuery-file-upload.js"></script>
-        
         
         <!-- Main Script -->
         <script src="'.BASE_URL.'js/script.js"></script>

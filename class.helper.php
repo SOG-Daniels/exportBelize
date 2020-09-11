@@ -17,28 +17,31 @@ class Helper
     }
 
     //Uploades an image to respective directory
-    public function uploadImage($files = null, $uploadDir = 'upload/'){
+    public function uploadImage($data = null, $uploadDir = 'upload/'){
 
-        if(!empty($files['file'])){
+        if(!empty($data['files'])){
 
             $fileNames = array();
             $newFilePath = '';
 
             // Count total files
-            $fileCount = count($files['file']['name']);
+            $fileCount = count($data['files']['name']);
             
             // Looping all files
             for($i = 0; $i < $fileCount; $i++){
 
-                $file = pathinfo($files['file']['name'][$i]);
+                $file = pathinfo($data['files']['name'][$i]);
 
                 $newFilePath = $uploadDir.$file['filename'].'_'.time().'.'.$file['extension'];
 
                 // Upload file
-                if (move_uploaded_file($files['file']['tmp_name'][$i], $newFilePath)){
-                    $fileNames = array(
-                        'file_name' => $files['file']['name'],
-                        'file_path' => $newFilePath
+                if (move_uploaded_file($data['files']['tmp_name'][$i], $newFilePath)){
+                    $type = explode('/', $data['files']['type'][$i]);
+                    $fileNames[$i] = array(
+                        'file_name' => $data['files']['name'][$i],
+                        'file_path' => $newFilePath,
+                        'size' => $data['files']['size'][$i],
+                        'type' => $type[0]
                     );
                 }else{
 

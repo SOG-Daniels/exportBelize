@@ -134,6 +134,28 @@ class Process{
 
 
     }
+    //Gets all the companies in the system
+    public function getCompanyList(){
+        
+        $sql = 'SELECT 
+                    c.id, c.user_id, c.name, c.description, c.website_link, c.nit, c.phone, c.email,
+                    c.ctv, c.street, c.district
+                FROM 
+                    users as u,
+                    company as c 
+                WHERE 
+                    c.user_id = u.id AND
+                    u.user_type = "company" AND
+                    u.status = 1 AND
+                    c.status = 1';
+        $query = $this->conn->prepare($sql);
+        $query->execute();
+        
+        if ($query->rowCount() > 0 ){
+            return $query->fetchAll();
+        }
+        return false;
+    }
     //gets the company info for a particular user
     public function getCompanyDetails($userId = null){
         
@@ -213,11 +235,11 @@ class Process{
             
             if ($query->rowCount() > 0 ){
                 $this->status = true;
-                $result['products'] = $query->fetchAll();
-                foreach($result['products'] as $key => $product){
+                $result['product'] = $query->fetchAll();
+                foreach($result['product'] as $key => $product){
 
                     $sql = 'SELECT 
-                                id, product_id, file_name, path 
+                                id, product_id, file_name, path, size, type 
                             FROM 
                                 product_image
                             WHERE
@@ -228,9 +250,9 @@ class Process{
                     $query = $this->conn->prepare($sql);
                     $query->execute();
 
-                    $result['products'][$key]['productImages'] = $query->fetchAll();
+                    $result['product'][$key]['productImages'] = $query->fetchAll();
                 }
-                return  $result['products'];
+                return  $result['product'];
             }
 
             return $this->status;
@@ -550,7 +572,6 @@ class Process{
                         sector_id = ?,
                         hs_code = ?
 
-
                     WHERE 
                         id = ".$data['productId']." AND 
                         company_id = ".$companyId."
@@ -561,7 +582,7 @@ class Process{
                 $name,
                 $description,
                 $sectorId,
-                $hc_code
+                $hs_code
 
             ]);
             
@@ -609,25 +630,24 @@ class Process{
             $sql = "UPDATE 
                         product_image
                     SET 
-                        path = ?,
                         status = ?
-
 
                     WHERE 
                         product_id = ".$data['productId']." AND
-                        id = ".$data['id']."";
+                        id = ".$data['productImageId']."";
                         
             
             $query = $this->conn->prepare($sql);
             $result = $query->execute([
-                $data['imagePath'],
-                $data['imageStatus']
+                $data['status']
             ]);
             
             if (!$result){
                 $this->log->error('setProductImage UPDATE section returned false');
                 return false;
             }
+
+            return $data['productImageId'];
 
         }else{
             //Record doesnt exist -- INSERT
@@ -643,16 +663,21 @@ class Process{
                                 product_image(
                                     product_id,
                                     file_name, 
-                                    path 
+                                    path,
+                                    size,
+                                    type 
                                 ) 
-                            VALUES(?, ?)';
+                            VALUES(?, ?, ?, ?, ?)';
 
                     $query = $this->conn->prepare($sql);
 
                     $result = $query->execute([
                         $data['productId'],
                         $filePaths[$i]['file_name'],
-                        $filePaths[$i]['file_path']
+                        $filePaths[$i]['file_path'],
+                        $filePaths[$i]['size'],
+                        $filePaths[$i]['type']
+
                     ]);
 
                     if(!$result){
@@ -744,10 +769,33 @@ class Process{
 
 
     }
+    public function removeProduct($productId = null){
+        
+        $sql = "UPDATE 
+                    products 
+                SET 
+                    status = 0
+                WHERE 
+                    id = ".$productId." AND 
+                    company_id = ".$_SESSION['COMPANYDATA'][0]['id']."                    
+                    ";
+        
+        $query = $this->conn->prepare($sql);
+        $result = $query->execute();
+        
+        if (!$result){
+            $this->log->error('removeProduct Returned false, product_Id: '.$productId.', userId: '.$_SESSION['USERDATA'][0]['user_id']);
+            return false;
+        }
+        return true;
+
+
+
+    }
     // Updates the user profile
     public function updateUserProfile($data = null){
 
-        $fName = $this->sanitize($data['firstName']) ?? '';
+        $fName = $this->helper->sanitize($data['firstName']) ?? '';
         $lName = $this->helper->sanitize($data['lastName']) ?? '';
 
         $sql = 'UPDATE users SET full_name = ? WHERE id = '.$_SESSION['USERDATA']['user_id'].';';
