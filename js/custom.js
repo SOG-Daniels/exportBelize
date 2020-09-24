@@ -84,8 +84,8 @@ $(document).ready(function(){
   $("#myProfile :input").prop("disabled", true);
   //diables all inputs in myCompanyProfile form
   $("#myCompanyProfile :input").prop("disabled", true);
-  $("#upload-business-logo").addClass("disabled");
-  $("#add-export-market").addClass("disabled");
+  // $("#upload-business-logo").addClass("disabled");
+  // $("#add-export-market").addClass("disabled");
 
 
   // for profile edit button clicked

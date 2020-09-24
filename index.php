@@ -23,7 +23,39 @@
         
         if ($_GET['page'] == 'signIn'){
 
-            $pageContent = $view->signIn();
+            if (!empty($_SESSION['USERDATA'])){
+                // IF USER IS SIGNED IN NO SIGNUP PAGE IS AVAILABLE
+               
+                if ($_SESSION['USERDATA']['user_type'] == 'company'){
+
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
+                    $result['socialContacts'] = $process->getSocialContact();
+                    $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
+                    $result['exportMarkets'] = $process->getExportMarkets();
+                    $result['exportMarketList'] = $process->getExportMarketList($result['companyDetails'][0]['id']);
+                
+                    $pageContent = $view->companyProfile($result);
+                }else if($_SESSION['USERDATA']['user_type'] == 'admin'){
+                    
+                    $pageContent = $view->adminProfile();
+
+                }else if ($_SESSION['USERDATA']['user_type'] == 'buyer'){
+
+                    $result['sectors'] = $process->getSectors();
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
+                    $result['interest'] = $process->getInterest();
+
+                    $pageContent = $view->buyerProfile($result);
+
+                }else{
+                    $pageContent = $view->pageNotFound();
+                }
+
+            }else{
+
+                $pageContent = $view->signIn();
+            
+            }
 
         }else if ($_GET['page'] == 'companyRegistration'){
 
@@ -45,18 +77,64 @@
 
         }else if ($_GET['page'] == 'viewProducts'){    
             
-            $result['products'] = $process->getProductsBySector($_GET['sectorId']);
+            // $result['products'] = $process->getProductsBySector($_GET['sectorId']);
             $result['sectors'] = $process->getSectors();
 
             $pageContent = $view->viewProducts($result);
         
-        }else if ($_GET['page'] == 'productDetail'){    
+        }else if ($_GET['page'] == 'productDetails' && isset($_GET['productId'])){    
 
-            $pageContent = $view->productDetails();
+            $product = $process->getProductById($_GET['productId']);
+
+            if ($product == false){
+                $pageContent = $view->pageNotFound();
+            }else{
+                $result['exportMarkets'] = $process->getExportMarkets();
+                
+                $result['exportMarketList'] = $process->getExportMarketList($product['company_id']);
+                $result['productDetails'] = $process->getCompanyProductDetail($product['company_id'], $product['product_id']);
+                $result['companyDetails'] = $process->getCompanyDetails($product['company_id']);
+
+                $pageContent = $view->productDetails($result);
+            }
         
-        }else if ($_GET['page'] == 'companyDetail'){    
+        }else if ($_GET['page'] == 'companyDetail' && isset($_GET['companyId'])){    
 
-            $pageContent = $view->companyDetails();
+            $result['companyDetails'] = $process->getCompanyDetails($_GET['companyId']);
+
+            if ($result['companyDetails'] == false){
+                $pageContent = $view->pageNotFound();
+            }else{
+                
+                $breadCrumbs = '';
+
+                if (!empty($_SESSION['USERDATA']) && $_SESSION['USERDATA']['user_type'] == 'admin'){
+                    $breadCrumbs = '
+                        <li class="breadcrumb-item"><a href="'.BASE_URL.'index.php/?page=companyList">Company List</a></li>
+                        <li class="breadcrumb-item text-white" aria-current="page">Company Details</li>
+                    ';
+                }else{
+                    $breadCrumbs = '
+                        <li class="breadcrumb-item text-white" aria-current="page">Company Details</li>
+                    ';
+                }
+                $products = $process->getCompanyProducts($result['companyDetails'][0]['id']);
+                
+                foreach ($products as $key => $product){
+                    $productDetail = $process->getCompanyProductDetail($result['companyDetails'][0]['id'], $product['product_id']);
+                    $result['products'][$key] = $productDetail[0];
+                }
+
+                $result['socialContacts'] = $process->getSocialContact();
+                $result['exportMarkets'] = $process->getExportMarkets();
+                $result['sectors'] = $process->getSectors();
+                
+                $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
+                $result['exportMarketList'] = $process->getExportMarketList($result['companyDetails'][0]['id']);
+                $result['breadCrumbs'] = $breadCrumbs;
+
+                $pageContent = $view->companyDetails($result);
+            }
 
         }elseif (!empty($_SESSION['USERDATA']) && $_GET){
             // HANDLES ALL PAGE REQUEST FOR SIGNED IN USERS
@@ -74,46 +152,33 @@
 
                 $pageContent = $view->home();
                 
-            }else if ($_SESSION['USERDATA']['user_type'] == 'company'){
-                //ALL PAGES AVAILABLE FOR A COMPANY PROFILE
+            }else if($_GET['page'] == 'editProduct' && $_SESSION['USERDATA']['user_type'] != 'buyer'){
+                // PAGES ACCESSABLE BY ADMIN AND COMPANY
 
-                if ($_GET['page'] == 'profile'){
+                if(isset($_GET['productId'])){
+                   
+                    $companyId = $_SESSION['COMPANYDATA'][0]['id'] ?? $_GET['companyId'] ?? null;
+                    $result['companyDetails'] = $process->getCompanyDetails($companyId);
 
-                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
-                    $result['socialContacts'] = $process->getSocialContact();
-                    $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
-                    $result['exportMarkets'] = $process->getExportMarkets();
-                    $result['exportMarketList'] = $process->getExportMarketList($result['companyDetails'][0]['id']);
-                
-                    $pageContent = $view->companyProfile($result);
-                    
-                }else if ($_GET['page'] == 'viewProducts'){ 
-                
-                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
-                    $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
-                    $result['exportMarketList'] = $process->getExportMarketList($result['companyDetails'][0]['id']);
-                    $result['myproducts'] = $process->getCompanyProducts();
-    
-                    $pageContent = $view->viewProducts();
-    
-                }else if ($_GET['page'] == 'editProduct'){ 
-                    if(isset($_GET['productId'])){
-                        
+                    if ($result['companyDetails'] == false){
+
+                        $pageContent = $view->pageNotFound();
+
+                    }else{
+
                         $result['sectors'] = $process->getSectors();
-                        $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
                         $result['product'] = $process->getCompanyProductDetail($result['companyDetails'][0]['id'], $_GET['productId']);
                         
-                       
                         if ($result['product'] == false){
                             $pageContent = $view->pageNotFound();
                         }else{
-    
+
                             $result['initialPrev'] = array();
                             $result['initialPrevConfig'] = array();
-    
+
                             foreach($result['product'][0]['productImages'] as $key => $productImg){
-    
-                                $result['initialPrev'][$key] = array(
+
+                                $result['initialPrev'] = array(
                                     BASE_URL.$productImg['path']
                                 );
                                 $result['initialPrevConfig'][$key] = array(
@@ -125,23 +190,51 @@
                                     'type' => $productImg['type'],
                                     'extra' => ['productId'=>$result['product'][0]['product_id'], 'ajaxRequest'=>'removeProductImg']
                                 );
-    
+
                             }
-                            
                             $result['uploadExtraData'] = array(
                                 'ajaxRequest' => 'uploadProductImg',
                                 'productId' => $result['product'][0]['product_id']
                             );
+                           
+                            $result['pageTitle'] = $result['product'][0]['product_name'];
+                            $result['bannerTitle'] = 'Edit Product';
                             
                             $pageContent = $view->editMyProducts($result);
                         }
-    
-                    }else{
-                        $pageContent = $view->home();                    
+
                     }
+
+                }else{
+                    $pageContent = $view->home();                    
+                }
+                
+
+            }else if ($_SESSION['USERDATA']['user_type'] == 'company'){
+                //ALL PAGES AVAILABLE FOR A COMPANY PROFILE
+
+                if ($_GET['page'] == 'profile'){
+
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
+                    $result['socialContacts'] = $process->getSocialContact();
+                    $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
+                    $result['exportMarkets'] = $process->getExportMarkets();
+                    $result['exportMarketList'] = $process->getExportMarketList($result['companyDetails'][0]['id']);
+                
+                    $pageContent = $view->companyProfile($result);
+                    
+                }else if ($_GET['page'] == 'viewProducts'){ 
+                
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
+                    $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
+                    $result['exportMarketList'] = $process->getExportMarketList($result['companyDetails'][0]['id']);
+                    $result['myproducts'] = $process->getCompanyProducts();
+    
+                    $pageContent = $view->viewProducts();
+
                 }else if ($_GET['page'] == 'myProducts'){ 
                     
-                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
                     $result['products'] = $process->getCompanyProducts($result['companyDetails'][0]['id']);
                     
                     $pageContent = $view->productList($result);
@@ -171,7 +264,7 @@
                             ';
                         }
 
-                        $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
+                        $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
                         $result['products'] = $process->getCompanyProducts($result['companyDetails'][0]['id']);
 
                         $pageContent = $view->productList($result);
@@ -200,7 +293,7 @@
                 if ($_GET['page'] == 'profile'){
                     
                     $result['sectors'] = $process->getSectors();
-                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
                     $result['interest'] = $process->getInterest();
 
                     $pageContent = $view->buyerProfile($result);
@@ -213,14 +306,82 @@
 
                 if ($_GET['page'] == 'profile'){
                     $pageContent = $view->adminProfile();
+                }else if ($_GET['page'] == 'productList'){
+
+                    if (isset($_GET['companyId'])){
+                        //display products for a specific company
+
+                        $result['products'] = $process->getCompanyProducts($_GET['companyId']);
+
+                        if ($result['products'] == false){
+                            //company products not found
+
+                            $pageContent = $view->pageNotFound();
+
+                        }else{
+                            //company products found 
+
+                            $result['companyDetails'] = $process->getCompanyDetails($_GET['companyId']);
+                            $result['bannerTitle'] = $result['companyDetails'][0]['name'].' Product List';
+                            $result['pageTitle'] = $result['companyDetails'][0]['name'].' Products';
+                            $result['breadCrumb'] ='
+                            <li class="breadcrumb-item"><a href="'.BASE_URL.'index.php/?page=companyList">Company List</a></li>
+                            <li class="breadcrumb-item text-white" aria-current="page">Product List</li>
+                            ';
+
+                            $pageContent = $view->productList($result);
+
+                        }
+
+                    }else{
+                        //display all products
+
+                        $result['products'] = $process->getProducts();
+                        $result['bannerTitle'] = 'Product List';
+                        $result['pageTitle'] = 'Products';
+                        $result['breadCrumb'] ='
+                        <li class="breadcrumb-item text-white" aria-current="page">Product List</li>
+                        ';
+                        
+                        $pageContent = $view->productList($result);
+
+
+                    }
+                
+                }else if ($_GET['page'] == 'editCompany'){
+
+                    if (isset($_GET['companyId'])){
+
+                        $result['companyDetails'] = $process->getCompanyDetails($_GET['companyId']);
+                        $result['sector'] = $process->getSectors();
+
+                        if ($result['companyDetails'] == false){
+                            $pageContent = $view->pageNotFound();
+                        }else{
+                            
+                            //Getting Company Profile
+                            $result['products'] = $process->getCompanyProducts($result['companyDetails'][0]['id']);
+                            $result['socialContacts'] = $process->getSocialContact();
+                            $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
+                            $result['exportMarkets'] = $process->getExportMarkets();
+                            $result['exportMarketList'] = $process->getExportMarketList($result['companyDetails'][0]['id']);
+                            
+                            $pageContent = $view->editCompanyDetails($result);
+                        }
+
+                    }else{
+                        $pageContent = $view->home();
+                    }
+
                 }else if ($_GET['page'] == 'companyList'){
 
                     $result['companyList'] = $process->getCompanyList();
 
-                    // echo "<br><br><br><br>";
-                    // echo "<pre>";
-                    // print_r($result);
-                    // echo "</pre>";
+                    //getting the amout of products a comapany has
+                    foreach ($result['companyList'] as $key => $company){
+                        $result['companyList'][0]['productCount'] = count($process->getCompanyProducts($company['id']));
+                    }
+
                     $pageContent = $view->companyList($result);
                 
                 }else{
@@ -233,7 +394,10 @@
             }
         }else{
             //PAGE REQUEST NOT FOUND
-            $pageContent = $view->home();
+            $result['sectors'] = $process->getSectors();
+            $result['products'] = $process->getProducts();
+
+            $pageContent = $view->home($result);
         }
 
     }else if (!empty($_POST) && isset($_POST['action'])){
@@ -255,16 +419,16 @@
                 $pageContent = $view->signIn($message);
             }else{
                 //setting sessions
-
+                
                 $_SESSION['USERDATA'] = $result;
-                $_SESSION['COMPANYDATA'] = $process->getCompanyDetails($result['user_id']);
+                $_SESSION['COMPANYDATA'] = $process->getCompanyDetails();
                 $_SESSION['PAGES'] = $process->getUserPages($_SESSION['USERDATA']['user_type']); 
 
                 if ($_SESSION['USERDATA']['user_type'] == 'admin'){
                     $pageContent = $view->adminProfile();
                 }else if($_SESSION['USERDATA']['user_type'] == 'company'){
                    
-                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
                     $result['socialContacts'] = $process->getSocialContact();
                     $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
                     $result['exportMarkets'] = $process->getExportMarkets();
@@ -274,7 +438,7 @@
                 }else{
                     
                     $result['sectors'] = $process->getSectors();
-                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
                     $result['interest'] = $process->getInterest();
 
                     $pageContent = $view->buyerProfile($result);
@@ -357,9 +521,9 @@
             //USER IS LOGGED IN AN CAN PERFORM THESE ACTIONS BASE ON USER_TYPE
         
             if ($_SESSION['USERDATA']['user_type'] == 'admin'){
-
+                //admin actions here 
             }else if ($_SESSION['USERDATA']['user_type'] == 'company'){
-            // ACTIONS AVAILABLE FOR A COMPANY PROFILE
+                // ACTIONS AVAILABLE FOR A COMPANY PROFILE
 
                 if ($_POST['action'] == 'addProduct'){
                     //adding product details
@@ -432,7 +596,7 @@
                     }
                     
                     $result['sectors'] = $process->getSectors();
-                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
                     $result['product'] = $process->getCompanyProductDetail($result['companyDetails'][0]['id'], $_POST['productId']);
 
                     foreach($result['product'][0]['productImages'] as $key => $productImg){
@@ -463,7 +627,28 @@
             $pageContent = $view->home();
         }
     }else{
-        $pageContent = $view->home();
+        
+        $result['sectors'] = $process->getSectors();
+        $result['buyerCount'] = count($process->getBuyerList());
+        $result['companys'] = $process->getCompanyList();
+
+        $products = $process->getProducts();
+
+        foreach ($products as $key => $product){
+
+
+            $prodDetails = $process->getCompanyProductDetail($product['company_id'], $product['product_id']);
+            $prodDetails[0]['is_featured'] = 0;
+           
+            if ($product['is_featured'] == 1){
+                $prodDetails[0]['is_featured'] = 1;
+            }
+            
+            $result['products'][] = $prodDetails[0];
+
+        }
+
+        $pageContent = $view->home($result);
     }
 
     // ALL AJAX POST REQUEST ARE HANDLED BELOW
@@ -552,7 +737,7 @@
                         $message .= 'Sorry, not all of the settings was saved.';
                     }else{
                         
-                        $_SESSION['COMPANYDATA'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
+                        $_SESSION['COMPANYDATA'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
                         $message = 'Changes were saved!';
                     }
                     echo $message;
@@ -649,7 +834,7 @@
         
                     // ';
                     $result['message'] = 'Success! Profile was updated.';
-                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['USERDATA']['user_id']);
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
         
                     //return buyer Id upon success
                     $wasUpdated = $process->updateUserProfile($_POST);

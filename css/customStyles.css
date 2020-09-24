@@ -70,3 +70,23 @@ fieldset[disabled] .bs-btn-primary.active {
   width: 215px;
   max-width: 225px;
 }
+
+.badge-light{
+  background-color: #ee3b24;
+  color: white;
+}
+
+.about-message{
+  /* background-color: #fdebe9; */
+  /* background-color: #fbd7d3; */
+  background-color: #ededed;
+}
+/* CSS for product images is company details*/
+figure.effect-oscar .product-img {
+  height: 225px;
+  width: 100%;
+}
+.flexportfolio.flexslider .slides img {
+  height: auto;
+
+}

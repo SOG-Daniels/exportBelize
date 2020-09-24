@@ -161,7 +161,97 @@ class Ui {
         return $html;
     }   
     // return the home page
-    public function home(){
+    public function home($data = array()){
+
+        $featuredProducts = '';
+        $featuredSectors = '';
+        $featuredCompanies = ''; 
+        $productImages = '';
+
+        //getting featured companies for display
+        foreach($data['companys'] as $key => $company){
+            if ($company['is_featured'] == 1){
+                $featuredCompanies .= '
+                    <figure class="m-0 item client_logo">
+                        <a href="'.BASE_URL.'?page=companyDetail&companyId='.$company['id'].'">
+                            <img src="'.BASE_URL.$company['logo_img'].'" alt="'.$company['name'].' Logo">
+                        </a>
+                    </figure>
+                ';
+            }
+        }
+
+        //getting featured sectors for display
+        foreach ($data['sectors'] as $key => $sector){
+            if ($sector['is_featured'] == 1){
+
+                if ($key <= 1){
+                    $featuredSectors .= '
+                        <div class="col-sm-6 isotope-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="'.BASE_URL.$sector['sector_img'].'" alt="'.$sector['name'].'">
+                                    <figcaption>
+                                        <h3>'.$sector['name'].'</h3>
+                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sectorId='.$sector['id'].'"><i class="fa fa-link"></i></a>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div><!-- Isotope item end -->
+                    ';
+                }else{
+                    $featuredSectors .='
+                        <div class="col-sm-4 isotope-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="'.BASE_URL.$sector['sector_img'].'" alt="'.$sector['name'].'">
+                                    <figcaption>
+                                        <h3>'.$sector['name'].'</h3>
+                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sectorId='.$sector['id'].'"><i class="fa fa-link"></i></a>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div><!-- Isotope item end -->
+                    ';
+                }
+
+            }
+        }
+        
+        //getting featured products for display
+        foreach ($data['products'] as $key => $product){
+            
+            if (isset($product['productImages'][0]['path']) && $product['is_featured'] == 1){
+
+                $featuredProducts .= '
+                    <div class="col-sm-4 isotope-item">
+                        <div class="grid">
+                            <figure class="m-0 effect-oscar">
+                                <img src="'.BASE_URL.$product['productImages'][0]['path'].'" alt="">
+                                <figcaption>
+                                    <h3>'.$product['product_name'].'</h3>
+                                    <a class="link icon-pentagon" href="'.BASE_URL.'?page=productDetails&productId='.$product['product_id'].'"><i class="fa fa-link"></i></a>
+                                </figcaption>
+                            </figure>
+                        </div>
+                    </div><!-- Isotope item end -->
+                ';
+
+            }
+        }
+
+        if ($featuredProducts != ''){
+            //wraping featured products in a flex box 
+            $productImages = '
+                    <div>
+                        <div class="d-flex flex-row isotope" id="isotope">
+                            '.$featuredProducts.'   
+                        </div><!-- Content row end -->
+                    </div><!-- Container end -->
+            ';
+
+        }
+        
         $html = '
             <!-- Slider start -->
             <section id="home" class="pt-md-0 pt-3*2 pb-0">
@@ -252,47 +342,8 @@ class Ui {
                     </div> <!-- Title row end -->
 
                 </div>
+                '.(($productImages != '')? $productImages : 'No Featured Products Set.').'
 
-                <div class="container-fluid">
-                    <div class="row isotope" id="isotope">
-                        <div class="col-sm-4 isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="'.BASE_URL.'images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Product 1</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=productDetail&productId=1"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-4 isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="'.BASE_URL.'images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Product 2</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=productDetail&productId=2"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-4 isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="'.BASE_URL.'images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Product 3</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=productDetail&productId=3"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                    </div><!-- Content row end -->
-                </div><!-- Container end -->
             </section><!-- Portfolio end -->
         
             <!-- Counter Strat / displays some basic stat info-->
@@ -303,21 +354,21 @@ class Ui {
                         <div class="facts one col-md-3 col-sm-6">
                             <span class="facts-icon"><i class="fa fa-shopping-cart"></i></span>
                             <div class="facts-num">
-                                <span class="counter">700</span>
+                                <span class="counter">'.(Count($data['products'])).'</span>
                             </div>
                             <h3>Products</h3>
                         </div>
                         <div class="facts two col-md-3 col-sm-6">
-                            <span class="facts-icon"><i class="fa fa-th-list"></i></span>
+                            <span class="facts-icon"><i class="fa fa-pie-chart"></i></span>
                             <div class="facts-num">
-                                <span class="counter">7</span>
+                                <span class="counter">'.(count($data['sectors'])).'</span>
                             </div>
-                            <h3>Different Categories</h3>
+                            <h3>Different Sectors</h3>
                         </div>
                         <div class="facts three col-md-3 col-sm-6">
                             <span class="facts-icon"><i class="fa fa-building"></i></span>
                             <div class="facts-num">
-                                <span class="counter">27</span>
+                                <span class="counter">'.(count($data['companys'])).'</span>
                             </div>
                             <h3>Registered Companies</h3>
                         </div>
@@ -325,7 +376,7 @@ class Ui {
                         <div class="facts four col-md-3 col-sm-6">
                             <span class="facts-icon"><i class="fa fa-user"></i></span>
                             <div class="facts-num">
-                                <span class="counter">100</span>
+                                <span class="counter">'.$data['buyerCount'].'</span>
                             </div>
                             <h3>Registered Buyers</h3>
                         </div>
@@ -344,7 +395,7 @@ class Ui {
                     <div class="row">
                         <div class="col-md-12 heading">
                             <span class="title-icon classic float-left"><i class="fa fa-th-list"></i></span>
-                            <h2 class="title">Featured Categories<span class="title-desc">Check out these categories!</span></h2>
+                            <h2 class="title">Featured Sectors<span class="title-desc">Check out these sectors!</span></h2>
                         </div>
                     </div> <!-- Title row end -->
 
@@ -352,64 +403,7 @@ class Ui {
 
                 <div class="container-fluid">
                     <div class="row isotope" id="isotope">
-                        <div class="col-sm-6 isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="'.BASE_URL.'images/sectors/agriculture.jpg" alt="">
-                                    <figcaption>
-                                        <h3>AGRICULTURE</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=agriculture"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-6 isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="'.BASE_URL.'images/sectors/agro-processing.jpg" alt="">
-                                    <figcaption>
-                                        <h3>AGRO-PROCESSING</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=agro-processing"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-                    
-                        <div class="col-sm-4 isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="'.BASE_URL.'images/sectors/fishes-and-marine.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Fishes and Marine</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=fishes-and-marine"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-4 isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="'.BASE_URL.'images/sectors/energy.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Energy</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=energy"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-                        <div class="col-sm-4 isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="'.BASE_URL.'images/sectors/light-manufacturing.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Light Manufacturing</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=light-manufacturing"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
+                     '.$featuredSectors.' 
                     </div><!-- Content row end -->
                 </div><!-- Container end -->
             </section><!-- Portfolio end -->
@@ -425,51 +419,11 @@ class Ui {
                     </div><!-- Title row end -->
                     <div class="row wow fadeInLeft">
                         <div id="client-carousel" class="col-sm-12 owl-carousel owl-theme text-center client-carousel">
-                            <figure class="m-0 item client_logo">
-                                <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
-                                </a>
-                            </figure>
-                            <figure class="m-0 item client_logo">
-                                <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
-                                </a>
-                            </figure>
-                            <figure class="m-0 item client_logo">
-                                <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
-                                </a>
-                            </figure>
-                            <figure class="m-0 item client_logo">
-                                <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
-                                </a>
-                            </figure>
-                            <figure class="m-0 item client_logo">
-                                <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
-                                </a>
-                            </figure>
-                            <figure class="m-0 item client_logo">
-                                <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
-                                </a>
-                            </figure>
-                            <figure class="m-0 item client_logo">
-                                <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
-                                </a>
-                            </figure>
-                            <figure class="m-0 item client_logo">
-                                <a href="'.BASE_URL.'?page=companyDetail">
-                                    <img src="'.BASE_URL.'images/clients/marie-sharps-logo.png" alt="client">
-                                </a>
-                            </figure>
+                           '.$featuredCompanies.' 
                         </div><!-- Owl carousel end -->
                     </div><!-- Main row end -->
                 </div>
             </section>
-   
         ';
         return $html;
     }
@@ -603,6 +557,10 @@ class Ui {
 
         $rowData = '';
         $count = 1;
+        $pageTitle = $data['pageTitle'] ?? 'My Products';
+        $bannerTitle = $data['bannerTitle'] ?? 'Product List';
+        $breadCrumbs = $data['breadCrumb'] ?? '<li class="breadcrumb-item text-white" aria-current="page">View my Products</li>';
+
 
         foreach ($data['products'] as $product){
             
@@ -611,25 +569,26 @@ class Ui {
                     <td>'.$count.'</td>
                     <td>'.$product['hs_code'].'</td>
                     <td>'.$product['product_name'].'</td>
+                    <td>'.$product['company_name'].'</td>
                     <td>'.$product['sector_name'].'</td>
-                    <td><a class="btn btn-link pt-0" href="'.BASE_URL.'index.php/?page=editProduct&productId='.$product['product_id'].'" ><i class="fa fa-edit"></i> Edit</td>
-                    <td><a class="btn btn-link text-danger remove-product pt-0" href="'.BASE_URL.'index.php/?page=removeProduct&productId='.$product['product_id'].'" ><i class="fa fa-trash"></i> Delete</td>
+                    <td>
+                    <a class="btn btn-link pt-0" href="'.BASE_URL.'index.php/?page=editProduct&productId='.$product['product_id'].(($_SESSION['USERDATA']['user_type'] == 'admin')?'&companyId='.$product['company_id'] : '').'" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fa fa-edit"></i> Edit</a>
+                    &nbsp;
+                    <a class="btn btn-link text-danger remove-product pt-0" href="'.BASE_URL.'index.php/?page=removeProduct&productId='.$product['product_id'].'" data-toggle="tooltip" data-placement="top" title="Delete"><i class="fa fa-trash"></i> Delete</a>
+                    </td>
                 </tr>
             ';
             $count++;
         }
 
-        $html = $this->banner('My Products', 
-                              '<li class="breadcrumb-item text-white" aria-current="page">View my Products</li>'
-                              ).'
-
+        $html = $this->banner($bannerTitle, $breadCrumbs).'
                     <!-- Portfolio start -->
                     <section id="main-container" class="portfolio-static pt-4">
                         <div class="container">
                             <div class="row">
                                 <div class="col-md-12 heading">
                                     <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
-                                    <h2 class="title classic">My Products</h2>
+                                    <h2 class="title classic">'.$pageTitle.'</h2>
                                 </div>
                                 <div class="col-12">
                                     '.($data['message'] ?? '').'
@@ -652,9 +611,9 @@ class Ui {
                                                     <th>#</th>
                                                     <th>HS Code</th>
                                                     <th>Product Name</th>
+                                                    <th>Company Name</th>
                                                     <th>Sector</th>
-                                                    <th>Action</th>
-                                                    <th>Action</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -665,9 +624,9 @@ class Ui {
                                                     <th>#</th>
                                                     <th>HS Code</th>
                                                     <th>Product Name</th>
+                                                    <th>Company Name</th>
                                                     <th>Sector</th>
-                                                    <th>Action</th>
-                                                    <th>Action</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </tfoot>
                                         </table>
@@ -698,8 +657,11 @@ class Ui {
                     <td>'.$company['district'].'</td>
                     <td>'.$company['ctv'].'</td>
                     <td>'.$company['street'].'</td>
+                    <td><a href="'.BASE_URL.'index.php/?page=productList&companyId='.$company['id'].'" class="btn-link">'.$company['productCount'].'</a></td>
                     <td>
-                    <a class="btn btn-link pt-0" href="'.BASE_URL.'index.php/?page=editCompanyt&companyId='.$company['id'].'" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fa fa-edit"></i></a>
+                    <a class="btn btn-link text-secondary pt-0" href="'.BASE_URL.'index.php/?page=companyDetail&companyId='.$company['id'].'" data-toggle="tooltip" data-placement="top" title="view"><i class="fa fa-eye"></i></a>
+                    &nbsp;
+                    <a class="btn btn-link pt-0" href="'.BASE_URL.'index.php/?page=editCompany&companyId='.$company['id'].'" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fa fa-edit"></i></a>
                     &nbsp;
                     <a class="btn btn-link text-danger remove-product pt-0" href="'.BASE_URL.'index.php/?page=removeCompany&companyId='.$company['id'].'" data-toggle="tooltip" data-placement="top" title="Delete"><i class="fa fa-trash"></i></a>
                     </td>
@@ -739,13 +701,14 @@ class Ui {
                                             <thead class="thead-dark">
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>Company Name</th>
+                                                    <th>Name</th>
                                                     <th>Email</th>
-                                                    <th>Phone Number</th>
+                                                    <th>Phone #</th>
                                                     <th>District</th>
                                                     <th>C/T/V</th>
                                                     <th>Street</th>
-                                                    <th>Action</th>
+                                                    <th>Products</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -754,13 +717,14 @@ class Ui {
                                             <tfoot class="bg-light-grey">
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>Company Name</th>
+                                                    <th>Name</th>
                                                     <th>Email</th>
-                                                    <th>Phone Number</th>
+                                                    <th>Phone #</th>
                                                     <th>District</th>
                                                     <th>C/T/V</th>
                                                     <th>Street</th>
-                                                    <th>Action</th>
+                                                    <th>Products</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </tfoot>
                                         </table>
@@ -774,6 +738,261 @@ class Ui {
         return $html;
 
     }
+    public function editCompanyDetails($data = null){
+     
+        $socialOptions = '';
+        $socialMediaList = '';
+        $exportMarketFields = '';
+        $exportMarketOptions = '';
+        $productRowData = '';
+        $count = 1;
+
+        foreach ($data['products'] as $product){
+            
+            $productRowData .= '
+                <tr>
+                    <td>'.$count.'</td>
+                    <td>'.$product['hs_code'].'</td>
+                    <td>'.$product['product_name'].'</td>
+                    <td>'.$product['sector_name'].'</td>
+                    <td>
+                    <a class="btn btn-link pt-0" href="'.BASE_URL.'index.php/?page=editProduct&productId='.$product['product_id'].'&companyId='.$data['companyDetails'][0]['id'].'" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fa fa-edit"></i> Edit</a>
+                    &nbsp;
+                    <a class="btn btn-link text-danger remove-product pt-0" href="'.BASE_URL.'index.php/?page=removeProduct&productId='.$product['product_id'].'" data-toggle="tooltip" data-placement="top" title="delete"><i class="fa fa-trash"></i>Delete</a>
+                </tr>
+            ';
+            $count++;
+        }
+        if (isset($data['exportMarkets'])){
+            
+            //getting all export market options
+            foreach($data['exportMarkets'] as $array){
+                $exportMarketOptions .= '<option value="'.$array['id'].'">'.$array['name'].'</option>';
+            }
+
+        }
+        if (!empty($data['exportMarketList'])){
+
+            $count = 1;
+            //getting all business selected export markets
+            foreach($data['exportMarketList'] as $exportMarketList){
+                
+                $selectOptions = '';
+                $exportMarketListId = '';
+
+                foreach($data['exportMarkets'] as $exportMarket){
+                    if ($exportMarketList['export_market_id'] == $exportMarket['id']){
+                        $exportMarketListId = $exportMarketList['id'];
+                        $selectOptions .= '
+                            <option value="'.$exportMarket['id'].'" selected>'.$exportMarket['name'].'</option>
+                        ';
+                    }else{
+                        $selectOptions .= '
+                            <option value="'.$exportMarket['id'].'">'.$exportMarket['name'].'</option>
+                        ';
+
+                    }
+                }
+                $exportMarketFields .= '
+                    
+                    <div class="col-md-6 col-12 mb-3">
+                        <input type="hidden" name="exportMarkets['.$count.'][exportMarketListId]" value="'.$exportMarketListId.'">
+                        <input type="hidden" name="exportMarkets['.$count.'][companyId]" value="'.$data['companyDetails'][0]['id'].'">
+                        <label for="">Export Market <sub id="export-market-'.$count.'">#'.$count.'</sub></label>
+                        <div class="input-group">
+                            <select name="exportMarkets['.$count.'][exportMarketId]" class="form-control">
+                            '.$selectOptions.'
+                            </select>
+                            <div class="input-group-append">
+                                <button class="remove-export-market btn btn-danger" value="'.$exportMarketListId.'"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>  
+                    </div>
+                ';
+                $count++;
+            }
+        }
+        
+        if (isset($data['socialContacts'])){
+            $index = 0;
+            foreach($data['socialContacts'] as $socialContact){
+                $id = 0;
+                $val = '';
+                foreach($data['socialContactList'] as $socialContactList){
+                    if($socialContact['id'] == $socialContactList['id']){
+                        $val = $socialContactList['link'];
+                        $id = $socialContactList['id'];
+                    }
+                }
+                $socialOptions .= '
+                <div class="col-md-6 col-12 mb-3">
+                    <label for="socialContact">'.$socialContact['name'].' Link <sub>(Optional)</sub></label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="'.$socialContact['icon'].' fa-lg"></i></span>
+                        </div>
+                        <input type="hidden" name="socialContacts['.$index.'][socialContactListId]" value="'.$id.'">
+                        <input type="hidden" name="socialContacts['.$index.'][companyId]" value="'.$data['companyDetails'][0]['id'].'">
+                        <input type="hidden" name="socialContacts['.$index.'][socialContactId]" value="'.$socialContact['id'].'">
+                        <input type="text" class="form-control" placeholder="Enter your '.$socialContact['name'].' link" name="socialContacts['.$index.'][link]" aria-label="SocialLink" aria-describedby="socialMediaLink" value="'.($val ?? '').'">
+                    </div>
+                </div>
+                ';
+                $index++;
+            }
+        }
+        
+
+        $html = $this->banner('Edit Company',
+                              '<li class="breadcrumb-item"><a href="'.BASE_URL.'index.php/?page=companyList">Company List</a></li>'.
+                              '<li class="breadcrumb-item text-white" aria-current="page">Edit Company Details</li>'
+                              ).'
+
+                    <!-- Portfolio start -->
+                    <section id="main-container" class="portfolio-static pt-4">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12 heading">
+                                    <span class="title-icon classic float-left"><i class="fa fa-edit"></i></span>
+                                    <h2 class="title classic">'.$data['companyDetails'][0]['name'].'</h2>
+                                </div>
+                                <div class="col-12">
+                                    '.($data['message'] ?? '').'
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="accordion" id="accordion">
+                                        <!--/ Panel 1 end-->
+                                        <div class="card border rounded mb-2">
+                                            <div class="card-header p-0 bg-light-grey">
+                                                <a class="h4 mb-0 font-weight-bold text-uppercase d-block p-2 pl-5 text-dark" data-toggle="collapse" data-target="#collapseOne"
+                                                    aria-expanded="true" aria-controls="collapseOne">Company Details
+                                                </a>
+                                            </div>
+                                            <div id="collapseOne" class="collapse show" data-parent="#accordion">
+                                                <div class="card-body">
+                                                    <form id="my-product-1" action="'.BASE_URL.'" method="POST">
+                                                        <input type="hidden" name="action" value="saveCompanyEdit">
+                                                        <input type="hidden" name="productId" value="'.$data['companyDetails'][0]['id'].'">
+                                                        <input type="hidden" name="companyDetail[companyId]" value="'.$data['companyDetails'][0]['id'].'">
+                                                        <div class="form-row">
+                                                            <div class="col-12 mx-auto text-center ">
+                                                                
+                                                                <input type="hidden" name="logoPath" value="'.((isset($data['companyDetails'][0]['logo_img_path']))? $data['companyDetails'][0]['logo_img_path']: './images/business_icon.png' ) .'">
+                                                                <img id="business-logo" src="'.BASE_URL.((isset($data['companyDetails'][0]['logo_img_path']))? $data['companyDetails'][0]['logo_img_path']: 'images/business_icon.png' ) .'" class="avatar rounded img-thumbnail" height="250px" width="200px" >
+                                                                <div class="p-image">
+                                                                    <a class="btn btn-link" href="#" id="upload-business-logo">
+                                                                    <i class="fa fa-upload"></i> Upload Logo
+                                                                    </a>
+                                                                    <a href="#" id="remove-company-logo" class="btn btn-link text-danger" style="'.((isset($data['companyDetails'][0]['logo_img_path']))? '': 'display: none' ) .'" >
+                                                                    <i class="fa fa-trash"></i> Remove Image
+                                                                    </a>
+                                                                    <input class="file-upload" name="businessLogo" type="file" accept="image/*" style="display: none;"/>
+                                                                    
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <h4 class="text-dark pb-0">Company Info</h3>
+                                                        <hr>
+                                                        <div class="form-row">
+                                                            <div class="col-md-4 mb-3">
+                                                                <label for="validationDefault01">Company Name</label>
+                                                                <input type="text" class="form-control" id="" name="companyDetail[name]" placeholder="Enter your company name..." value="'.($data['companyDetails'][0]['name'] ?? '').'" required>
+                                                            </div>
+                                                            <div class="col-md-4 mb-3">
+                                                                <label for="validationDefault02">Company Contact Email<sub>(Optional)</sub></label>
+                                                                <input type="text" class="form-control" id="" name="companyDetail[email]" placeholder="Enter your company contact email..." value="'.($data['companyDetails'][0]['email'] ?? '').'" >
+                                                            </div>
+                                                            <div class="col-md-4 col-12 mb-3">
+                                                                <label for="email">Phone Number</label>
+                                                                <div class="input-group">
+                                                                    <input type="text" name="companyDetail[phone]" class="form-control" value="'.($data['companyDetails'][0]['phone'] ?? '').'" placeholder="Enter your company\'s phone number..." aria-describedby="inputGroupPrepend2" required>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-row">
+                                                            <div class="col-12 col-md-4 mb-3">
+                                                                <label for="">District</label>
+                                                                <select name="companyDetail[district]" class="form-control">
+                                                                    <option value="Corozal" '.(($data['companyDetails'][0]['district'] == 'Corozal')? 'selected' : '').'>Corozal</option>
+                                                                    <option value="Orange Walk" '.(($data['companyDetails'][0]['district'] == 'Orange Walk')? 'selected' : '').'>Orange Walk</option>
+                                                                    <option value="Belize" '.(($data['companyDetails'][0]['district'] == 'Belize')? 'selected' : '').'>Belize</option>
+                                                                    <option value="Cayo" '.(($data['companyDetails'][0]['district'] == 'Cayo')? 'selected' : '').' >Cayo</option>
+                                                                    <option value="Stann Creek" '.(($data['companyDetails'][0]['district'] == 'Stann Creek')? 'selected' : '').'>Stann Creek</option>
+                                                                    <option value="Toledo" '.(($data['companyDetails'][0]['district'] == 'Toldeo')? 'selected' : '').'>Toledo</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-4 col-12 mb-3">
+                                                                <label for="email">City/Village/Town</label>
+                                                                <div class="input-group">
+                                                                    <input type="text" name="companyDetail[ctv]" class="form-control" value="'.($data['companyDetails'][0]['ctv'] ?? '').'" placeholder="Enter your company..." aria-describedby="inputGroupPrepend2" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 col-12 mb-3">
+                                                                <label for="email">Street</label>
+                                                                <div class="input-group">
+                                                                    <input type="text" name="companyDetail[street]" class="form-control" id="" value="'.($data['companyDetails'][0]['street'] ?? '').'" placeholder="Enter your company\'s street address..." aria-describedby="inputGroupPrepend2" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 col-12 mb-3">
+                                                                <label for="email">Company Website Link <sub>(Optional)</sub></label>
+                                                                <div class="input-group">
+                                                                    <input type="text" class="form-control" name="companyDetail[website]" value="'.($data['companyDetails'][0]['website_link'] ?? '').'" placeholder="Enter an company website link..." aria-describedby="inputGroupPrepend2" >
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 col-md-8 mb-3">
+                                                                <label for="email">Company Description</label>
+                                                                <div class="input-group">
+                                                                <textarea class="form-control" name="companyDetail[description]" rows="3">'.($data['companyDetails'][0]['description'] ?? '').'</textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        '.(($socialOptions != '')? '<h4 class="text-dark pb-0">Social Contact Links</h3><hr><div class="form-row">'.$socialOptions.'</div>' : '').' 
+                                                        <h4 class="text-dark pb-0">Export Markets</h3>
+                                                        <hr>
+                                                        <div class="form-row" id="export-market-list">
+                                                            '.(($exportMarketFields != '')? ''.$exportMarketFields.'' :
+                                                            '
+                                                                <div class="col-md-6 col-12 mb-3">
+                                                                    <label for="">Export Market <sub id="export-market-'.$count.'">#'.$count.'</sub></label>
+                                                                    <div class="input-group">
+                                                                        <input type="hidden" name="exportMarkets['.$count.'][companyId]" value="'.$data['companyDetails'][0]['id'].'">
+                                                                        <select name="exportMarkets['.$count.'][exportMarketId]" class="form-control">
+                                                                        '.$exportMarketOptions.'
+                                                                        </select>
+                                                                        <div class="input-group-append">
+                                                                            <button class="remove-export-market btn btn-danger"><i class="fa fa-minus"></i></button>
+                                                                        </div>
+                                                                    </div>  
+                                                                </div>
+                                                            ').' 
+                                                        </div>
+                                                        <div class="form-row">
+                                                            <div class="col-12">
+                                                                <a href="#" id="add-export-market" class="btn btn-link float-right"><i class="fa fa-plus"> Add More Markets</i></a>
+                                                            </div>
+                                                        </div>
+                                                        <br>
+                                                        <div class="form-row">
+                                                            <div class="col-12">
+                                                                <span class="float-right"><button class="btn btn-success"><i class="fa fa-save"></i> Save</button> </span>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- Container end -->
+                    </section><!-- Portfolio end -->
+
+        ';
+        return $html;
+
+    }  
     public function editMyProducts($data = null){
         
         $sectorOptions = '';
@@ -788,11 +1007,16 @@ class Ui {
             ';
         }
 
-        $html = $this->banner('Edit Product',
-                              '<li class="breadcrumb-item"><a href="'.BASE_URL.'index.php/?page=myProducts">My Products</a></li>'.
-                              '<li class="breadcrumb-item text-white" aria-current="page">Edit Product</li>'
-                              ).'
+        if ($_SESSION['USERDATA']['user_type'] == 'admin'){
+            $breadCrumbs = '<li class="breadcrumb-item"><a href="'.BASE_URL.'index.php/?page=productList">Product List</a></li>'.
+                           '<li class="breadcrumb-item text-white" aria-current="page">Edit Product</li>';
 
+        }else{
+            $breadCrumbs = '<li class="breadcrumb-item"><a href="'.BASE_URL.'index.php/?page=myProducts">My Products</a></li>'.
+                           '<li class="breadcrumb-item text-white" aria-current="page">Edit Product</li>';
+
+        }
+        $html = $this->banner('Edit Product', $breadCrumbs ).'
                     <script>    
                         setInitialPreview('.json_encode($data['initialPrev']).');
                         setInitialPreviewConfig('.json_encode($data['initialPrevConfig']).');
@@ -996,10 +1220,39 @@ class Ui {
         return $html;
 
     }
-    public function productDetails(){
+    //Displays info about a product along with the company that makes it
+    public function productDetails($data = null){
+
+        $productImages = '';
+        $exportList = '';
+
+        if (!empty($data['exportMarketList']) && !empty($data['exportMarkets'])){
+
+            //getting all business selected export markets
+            foreach($data['exportMarketList'] as $exportMarketList){
+
+                foreach($data['exportMarkets'] as $exportMarket){
+                    if ($exportMarketList['export_market_id'] == $exportMarket['id']){
+                        $exportList .= '
+                            <span class="pr-1 pb-2">
+                                <a href="'.BASE_URL.'index.php/?page=viewProducts&filter=exportMarket&exportMarketId='.$exportMarket['id'].'" class="badge badge-pill badge-light">
+                                    <p class="d-inline h6"><i class="fa fa-truck"></i> '.$exportMarket['name'].'</p>
+                                </a>
+                            </span>
+                        ';
+                    }
+                }
+            }
+        }            
+        foreach ($data['productDetails'][0]['productImages'] as $key => $productImage){
+            $productImages .= '
+                <li><img src="'.BASE_URL.$productImage['path'].'" alt="'.$productImage['file_name'].'"></li>
+            ';
+        }
+
         $html = '
-            '.$this->banner('Product Name', 
-            '<li class="breadcrumb-item text-white" aria-current="page">Product Name</li>'
+            '.$this->banner($data['productDetails'][0]['product_name'], 
+            '<li class="breadcrumb-item text-white" aria-current="page">Product Details</li>'
             ).'   
 
             <!-- Portfolio item start -->
@@ -1012,27 +1265,34 @@ class Ui {
                             <div class="portfolio-slider">
                                 <div class="flexportfolio flexslider">
                                     <ul class="slides">
-                                        <li><img src="images/products/Marie-Sharps-Habanero-Pepper-Sauce-Fiery-Hot.jpg" alt=""></li>
-                                        <li><img src="images/products/marie-sharp-habanero-sauce.jpg" alt=""></li>
+                                        '.$productImages.'
                                     </ul>
                                 </div>
                             </div>
                         </div>
                         <!-- Portfolio item slider end -->
                         <!-- sidebar start -->
-                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 pt-3 pt-md-0">
-                            <div class="sidebar">
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 pt-3 pt-md-0 about-message">
+                            <div class="sidebar pr-3 pt-3">
                                 <div class="portfolio-desc">
                                     <h3 class="widget-title">About Product</h3>
-                                    <p>Oat cake oat cake dessert brownie. Gummies tiramisu tart jujubes jelly beans macaroon danish pie muffin.
-                                        Soufflé pudding brownie pudding fruitcake marshmallow.
+                                    <p>
+                                    '.($data['productDetails'][0]['product_description'] ?? 'No Description available.').'
                                     </p>
                                     <br />
-                                    <h3 class="widget-title">Additional Info</h3>
-                                    <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.</p>
-                                    <br />
+                                    <h3 class="widget-title">Sector</h3>
+                                        <div class="row">
+                                            <div class="col-12 col-md-6">
+                                                <a href="'.BASE_URL.'index.php/?page=viewProducts&filter=sector&sectorId='.$data['productDetails'][0]['sector_id'].'" class="badge badge badge-secondary">
+                                                    <label class="d-inline h6"><i class="fas fa-tag"></i> '.$data['productDetails'][0]['sector_name'].'</label>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    <br>
                                     <h3 class="widget-title">Exports To</h3>
-                                    <p>Us, Taiwan, Japan, Korea</p>
+                                    <div class="row pl-3">
+                                    '.($exportList ?? 'No Export Markets Available.').'
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1044,18 +1304,22 @@ class Ui {
             <div class="row about-wrapper-bottom">
                 <div class="col-md-6 ts-padding about-img"
                     style="height:374px;">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="client">
+                                    <img src="'.BASE_URL.$data['companyDetails'][0]['logo_img_path'].'" alt="client">
                 </div>
                 <!--/ About image end -->
                 <div class="col-md-6 ts-padding about-message">
-                <h3 class="widget-title"><i class="fa fa-building"></i> Company</h3>
-                <h3>MARIE SHARP\'s</h3>
-                    <p>Cras mattis consectetur purus sit amet fermentum. Etiam porta sem malesuada magna mollis euismod. Aenean eu
-                        leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Sed posuere consectetur est at lobortis.
+                
+                    <div class="heading pb-4">
+                        <span class="title-icon classic float-left"><i class="fa fa-building"></i></span>
+                        <h2 class="title">'.$data['companyDetails'][0]['name'].'<span class="title-desc"><a href="'.BASE_URL.'index.php/?page=companyDetail&companyId='.$data['companyDetails'][0]['id'].'"><i class="fa fa-link"></i> Check out our profile!</a></span></h2>
+                    </div>
+
+                    <p>
+                    '.$data['companyDetails'][0]['description'].'
                     </p>
                     <ul class="unstyled arrow">
-                        <li><a href="#"><i class="fa fa-globe info"></i> http:/www.somebusinesslink.com</a></li>
-                        <li><a href="'.BASE_URL.'?page=companyDetail#company-products"><i class="fa fa-shopping-cart info"></i> See Products</a></li>
+                        <li><a href="#"><i class="fa fa-globe info"></i> '.$data['companyDetails'][0]['website_link'].'</a></li>
+                        <li><a href="'.BASE_URL.'?page=companyDetail&companyId='.$data['companyDetails'][0]['id'].'#company-products"><i class="fa fa-shopping-cart info"></i> See Products</a></li>
                         <li><a href="#main-container"><i class="fa fa-envelope info"></i> Contact</a></li>
                     
                     </ul>
@@ -1110,30 +1374,129 @@ class Ui {
         ';
         return $html;
     }
+    //Displays info about a company
     public function companyDetails($data = array()){
-        $html = '
-            
-            '.$this->banner($data['companyDetails'][0]['name'], 
-            '<li class="breadcrumb-item text-white" aria-current="page">'.$data['companyDetails'][0]['name'].'</li>'
-            ).'   
         
+        $sectors = array();
+        $sectorOptions = '';
+        $products = '';
+        $socialOptions = '';
+        $exportList = '';
+        $sectorTags = '';
+
+        if (!empty($data['products'])){
+
+            foreach ($data['products'] as $key => $product){
+
+                $sectorClass = explode(' ', $product['sector_name']);
+
+                if(!in_array($product['sector_id'], $sectors)){
+                    
+                    $sectorTags .='
+                        <span class="pr-1 pb-2">
+                            <a href="'.BASE_URL.'index.php/?page=viewProducts&filter=sector&sectorId='.$product['sector_id'].'" class="badge badge badge-secondary">
+                                <label class="d-inline h6"><i class="fas fa-tag"></i> '.$product['sector_name'].'</label>
+                            </a>
+                        </span>
+                    ';
+
+                    $sectorOptions .= '<li><a href="#" data-filter=".'.$sectorClass[0].'_'.$product['sector_id'].'">'.ucfirst($product['sector_name']).'</a></li>';
+                }
+                if(!empty($product['productImages']) && isset($product['productImages'][0]['path'])){
+                    $products .= '
+                        <div class="col-sm-3 '.$sectorClass[0].'_'.$product['sector_id'].' isotope-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img class="product-img" src="'.BASE_URL.$product['productImages'][0]['path'].'" alt="">
+                                    <figcaption>
+                                        <h3>'.$product['product_name'].'</h3>
+                                        <a class="link icon-pentagon" href="'.BASE_URL.'index.php/?page=productDetails&productId='.$product['product_id'].'"><i class="fa fa-link"></i></a>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div>
+                    ';
+                }
+            }
+        }
+
+        if (!empty($data['exportMarketList']) && !empty($data['exportMarkets'])){
+
+            //getting all business selected export markets
+            foreach($data['exportMarketList'] as $exportMarketList){
+
+                foreach($data['exportMarkets'] as $exportMarket){
+                    if ($exportMarketList['export_market_id'] == $exportMarket['id']){
+                        $exportList .= '
+                            <span class="pr-1 pb-2">
+                                <a href="'.BASE_URL.'index.php/?page=viewProducts&filter=exportMarket&exportMarketId='.$exportMarket['id'].'" class="badge badge-pill badge-light">
+                                    <p class="d-inline h6"><i class="fa fa-truck"></i> '.$exportMarket['name'].'</p>
+                                </a>
+                            </span>
+                        ';
+                    }
+                }
+            }
+        }            
+
+        if (isset($data['socialContacts']) && count($data['socialContactList']) > 0){
+            foreach($data['socialContacts'] as $socialContact){
+                
+                foreach($data['socialContactList'] as $socialContactList){
+                    if($socialContact['id'] == $socialContactList['id'] && trim($socialContactList['link']) != '' ){
+                        $socialOptions .= '
+                            <a title="'.$socialContact['name'].'" href="'.$socialContactList['link'].'" data-toggle="tooltip" data-placement="top">
+                                <span class="icon-pentagon wow bounceIn"><i class="'.$socialContact['icon'].'"></i></span>
+                            </a>
+                        ';
+                    }
+                }
+            }
+        }
+        
+        $html = '
+            '.$this->banner($data['companyDetails'][0]['name'], $data['breadCrumbs']).'   
+            
             <div class="row about-wrapper-bottom">
                 <div class="col-md-6 ts-padding about-img">
-                                    <img src="images/clients/marie-sharps-logo.png" alt="logo">
+                                    <img src="'.BASE_URL.$data['companyDetails'][0]['logo_img_path'].'" alt="logo">
                 </div>
                 <!--/ About image end -->
                 <div class="col-md-6 ts-padding about-message">
-                <h3 class="widget-title"><i class="fa fa-building"></i> Company</h3>
-                <h3>Marie Sharp\'s</h3>
-                    <p>Cras mattis consectetur purus sit amet fermentum. Etiam porta sem malesuada magna mollis euismod. Aenean eu
-                        leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Sed posuere consectetur est at lobortis.
+                <div class="heading pb-4">
+                    <span class="title-icon classic float-left"><i class="fa fa-building"></i></span>
+                    <h2 class="title">'.$data['companyDetails'][0]['name'].'<span class="title-desc">Thanks for Check out our profile!</span></h2>
+                </div>
+                    <p>
+                    '.$data['companyDetails'][0]['description'].'
                     </p>
-                    <ul class="unstyled arrow">
-                        <li><a href="#"><i class="fa fa-globe info"></i> http:/www.somebusinesslink.com</a></li>
-                        <li><a href="#company-products"><i class="fa fa-shopping-cart "></i> See All Products</a></li>
-                        <li><a href="#main-container-2"><i class="fa fa-envelope "></i> Contact</a></li>
+                    <ul class="unstyled arrow pb-3">
+                        <li><a href="'.$data['companyDetails'][0]['website_link'].'"><i class="fa fa-globe info"></i> '.$data['companyDetails'][0]['website_link'].'</a></li>
+                        <li><a href="#company-products"><i class="fa fa-shopping-cart"></i> See All Products</a></li>
+                        <li><a href="#main-container-2"><i class="fa fa-envelope"></i> Contact</a></li>
                     
                     </ul>
+                    <h3 class="widget-title mb-1">Sector</h3>
+                        <span class="d-flex justify-content-start pb-3">
+                            '.$sectorTags.'
+                        </span>
+                    <h4 class="text-dark">Social Media Links</h4>
+                    '.($socialOptions != '' ? 
+                        '<span class="d-flex justify-content-start pb-3">
+                            <ul class="dark unstyled text-center">
+                                <li>
+                                
+                            '.$socialOptions.'
+
+                                </li>
+                            </ul>
+                        </span>
+                    ' : '<p class="mb-2">No Social Media Links Available.</p>'
+                    ).'
+                    <h4 class="text-dark">Export Markets</h4>
+                    <div class="row pl-3">
+                    '.($exportList ?? 'No Export Markets Available.').'
+                    </div>
                 </div>
                 <!--/ About message end -->
             </div>
@@ -1144,7 +1507,7 @@ class Ui {
                         <div class="col-md-12 heading text-center">
                             <span class="icon-pentagon wow bounceIn"><i class="fa fa-shopping-cart"></i></span>
                             <h2 class="title2">Company Products
-                                <span class="title-desc">Check out the different products made by Company Name</span>
+                                <span class="title-desc">Check out the different products made by '.$data['companyDetails'][0]['name'].'</span>
                             </h2>
                         </div>
                     </div> <!-- Title row end -->
@@ -1155,111 +1518,14 @@ class Ui {
                             <div class="isotope-nav" data-isotope-nav="isotope">
                                 <ul>
                                     <li><a href="#" class="active" data-filter="*">All</a></li>
-                                    <li><a href="#" data-filter=".web-design">Sub Category</a></li>
-                                    <li><a href="#" data-filter=".development">Sub Category</a></li>
-                                    <li><a href="#" data-filter=".joomla">Sub Category</a></li>
-                                    <li><a href="#" data-filter=".wordpress">Sub Category</a></li>
+                                    '.$sectorOptions.'
                                 </ul>
                             </div>
                         </div>
                     </div><!-- Isotope filter end -->
 
                     <div id="isotope" class="row isotope">
-                        <div class="col-sm-3 web-design isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio1.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Startup Business</h3>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-3 development isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio2.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Easy to Lanunch</h3>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-3 joomla isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio3.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Your Business</h3>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-3 wordpress isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio4.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Prego Match</h3>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-3 joomla isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio5.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Fashion Brand</h3>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-3 development isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio6.jpg" alt="">
-                                    <figcaption>
-                                        <h3>The Insidage</h3>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-3 development isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio7.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Light Carpet</h3>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
-
-                        <div class="col-sm-3 development isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio8.jpg" alt="">
-                                    <figcaption>
-                                        <h3>Amazing Keyboard</h3>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div><!-- Isotope item end -->
+                        '.$products.'
                     </div><!-- Content row end -->
                 </div><!-- Container end -->
             </section><!-- Portfolio end -->
@@ -1306,13 +1572,12 @@ class Ui {
                         <div class="col-md-5">
                             <div class="contact-info">
                                 <h3>Contact Details</h3>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse eget erat magna. Pellentesque justo
-                                    ante</p>
+                                <p>Feel free to contact the company if you are interested in a product that they have.</p>
                                 <br>
-                                <p><i class="fa fa-home info"></i> 1102 Saint Marys, Junction City, KS </p>
-                                <p><i class="fa fa-phone info"></i> +(501) 223-6590</p>
-                                <p><i class="fa fa-envelope-o info"></i> business.email@bz.com</p>
-                                <p><i class="fa fa-globe info"></i> www.business.webpage.com</p>
+                                <p><i class="fa fa-home info"></i> '.$data['companyDetails'][0]['street'].', '.$data['companyDetails'][0]['ctv'].', '.$data['companyDetails'][0]['district'].' </p>
+                                <p><i class="fa fa-phone info"></i> +(501) '.$data['companyDetails'][0]['phone'].'</p>
+                                <p><i class="fa fa-envelope info"></i> '.$data['companyDetails'][0]['email'].'</p>
+                                <p><i class="fa fa-globe info"></i> <a href="'.$data['companyDetails'][0]['website_link'].'">'.$data['companyDetails'][0]['website_link'].'</a></p>
                             </div>
                         </div>
                     </div>
@@ -1822,7 +2087,7 @@ class Ui {
                                                 <input type="hidden" name="logoPath" value="'.((isset($data['companyDetails'][0]['logo_img_path']))? $data['companyDetails'][0]['logo_img_path']: './images/business_icon.png' ) .'">
                                                 <img id="business-logo" src="'.((isset($data['companyDetails'][0]['logo_img_path']))? $data['companyDetails'][0]['logo_img_path']: './images/business_icon.png' ) .'" class="avatar rounded img-thumbnail" height="250px" width="200px" >
                                                 <div class="p-image">
-                                                    <a class="btn btn-link" href="#" id="upload-business-logo">
+                                                    <a class="btn btn-link disabled" href="#" id="upload-business-logo">
                                                     <i class="fa fa-upload"></i> Upload Logo
                                                     </a>
                                                     <a href="#" id="remove-company-logo" class="btn btn-link text-danger disabled" style="'.((isset($data['companyDetails'][0]['logo_img_path']))? '': 'display: none' ) .'" >
@@ -1913,7 +2178,7 @@ class Ui {
                                     
                                         ').' 
                                         </div>
-                                            <a href="#" id="add-export-market" class="btn btn-link float-right"><i class="fa fa-plus"> Add More Markets</i>
+                                            <a href="#" id="add-export-market" class="btn btn-link float-right disabled"><i class="fa fa-plus"> Add More Markets</i></a>
                                     </form>
                                 </div>
                             </div>
@@ -2505,7 +2770,7 @@ class Ui {
                                 <a title="Google+" href="https://instagram.com/beltraide/">
                                     <span class="icon-pentagon wow bounceIn"><i class="fab fa-instagram fa-lg"></i></span>
                                 </a>
-                                <a title="Google+" href="https://www.linkedin.com/company/beltraide/">
+                                <a title="Linkedin" href="https://www.linkedin.com/company/beltraide/">
                                     <span class="icon-pentagon wow bounceIn"><i class="fab fa-linkedin-in fa-lg"></i></span>
                                 </a>
                             </li>

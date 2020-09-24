@@ -135,11 +135,56 @@ class Process{
 
     }
     //Gets all the companies in the system
+    public function getBuyerList(){
+        
+        $sql = 'SELECT 
+                    u.id,
+                    u.full_name,
+                    c.id, 
+                    c.user_id, 
+                    c.name as company_name, 
+                    c.description, 
+                    c.website_link, 
+                    c.tax_identification_num, 
+                    c.phone, 
+                    c.email,
+                    c.ctv, 
+                    c.street, 
+                    c.district,
+                    c.is_featured
+                FROM 
+                    users as u,
+                    company as c 
+                WHERE 
+                    c.user_id = u.id AND
+                    u.user_type = "buyer" AND
+                    u.status = 1 AND
+                    c.status = 1';
+        $query = $this->conn->prepare($sql);
+        $query->execute();
+        
+        if ($query->rowCount() > 0 ){
+            return $query->fetchAll();
+        }
+        return false;
+    }
+    //Gets all the companies in the system
     public function getCompanyList(){
         
         $sql = 'SELECT 
-                    c.id, c.user_id, c.name, c.description, c.website_link, c.nit, c.phone, c.email,
-                    c.ctv, c.street, c.district
+                    c.id, 
+                    c.user_id, 
+                    c.name, 
+                    c.description, 
+                    c.website_link, 
+                    c.tax_identification_num, 
+                    c.phone, 
+                    c.email,
+                    c.ctv, 
+                    c.street, 
+                    c.district,
+                    c.is_featured,
+                    c.logo_img_path as logo_img
                 FROM 
                     users as u,
                     company as c 
@@ -156,10 +201,19 @@ class Process{
         }
         return false;
     }
-    //gets the company info for a particular user
-    public function getCompanyDetails($userId = null){
+    //gets the company info by comapnyId or by user_id 
+    public function getCompanyDetails($companyId = null){
+
+        $companyId = $this->helper->sanitize($companyId);
         
-        $sql = 'SELECT * FROM company WHERE user_id = '.$userId.' AND status = 1';
+        if (isset($companyId) && $companyId != null){
+            //comapny_id passed so find by company_id
+            $sql = 'SELECT * FROM company WHERE id = '.$companyId.' AND status = 1';
+        }else{
+            //Company_id was not passed, so find company_details by user_id in session
+            $sql = 'SELECT * FROM company WHERE user_id = '.$_SESSION['USERDATA']['user_id'].' AND status = 1';
+        }
+
         $query = $this->conn->prepare($sql);
         $query->execute();
         
@@ -168,24 +222,31 @@ class Process{
         }
         return false;
     }
+    //gets the products for a specifice company
     public function getCompanyProducts($companyId = null){
         
+        $companyId = $this->helper->sanitize($companyId);
         $this->status = false;
+
         try {
             $sql = 'SELECT 
                         prod.id as product_id, 
-                        prod.company_id ,
+                        prod.company_id,
                         prod.hs_code,
                         prod.name as product_name,
                         prod.description as product_description,
+                        com.name as company_name,
                         sec.id as sector_id,
                         sec.name as sector_name
                     FROM 
                         products AS prod, 
+                        company AS com,
                         sector AS sec
                     WHERE 
                         prod.sector_id = sec.id  and
+                        prod.company_id = com.id and 
                         prod.status = 1 and 
+                        com.status = 1 and 
                         sec.status = 1 and 
                         company_id = '.$companyId.'
             ';
@@ -205,11 +266,52 @@ class Process{
             $this->log->error('getCompanyProducts: '.$e->getMessage());
             return $this->status;
         }
-    }  
-    //gets the company info for a particular user
-    public function getCompanyProductDetail($companyId = null, $productId = null){
+    }
+    //gets all the products that are active in the database
+    public function getProducts(){
         
         $this->status = false;
+
+        $sql = 'SELECT 
+                    prod.id as product_id, 
+                    prod.company_id,
+                    prod.hs_code,
+                    prod.is_featured,
+                    prod.name as product_name,
+                    prod.description as product_description,
+                    com.name as company_name,
+                    sec.id as sector_id,
+                    sec.name as sector_name
+                FROM 
+                    products AS prod,
+                    company AS com,
+                    sector AS sec
+                WHERE 
+                    prod.sector_id = sec.id  AND
+                    prod.company_id = com.id AND
+                    prod.status = 1 AND 
+                    com.status = 1 AND 
+                    sec.status = 1 
+        ';
+
+        $query = $this->conn->prepare($sql);
+        $query->execute();
+        
+        if ($query->rowCount() > 0 ){
+            $this->status = true;
+            $result['products'] = $query->fetchAll();
+            return $result['products'];
+        }
+        return $this->status;
+
+    }
+    //gets the company product detail by company and product id. 
+    public function getCompanyProductDetail($companyId = null, $productId = null){
+        
+        $comapnyId = $this->helper->sanitize($companyId);
+        $productId = $this->helper->sanitize($productId);
+        $this->status = false;
+
         try {
             $sql = 'SELECT 
                         prod.id AS product_id, 
@@ -226,7 +328,7 @@ class Process{
                         prod.sector_id = sec.id  AND
                         prod.status = 1 AND 
                         sec.status = 1 AND 
-                        company_id = '.$companyId.' AND 
+                        company_id = '.$companyId.' AND
                         prod.id = '.$productId.'
             ';
 
@@ -261,9 +363,11 @@ class Process{
             return $this->status;
         }
     }   
-     //gets the company info for a particular user
-    public function getProductsBySector($sectorId = null){
+    //Gets a product by ID
+    public function getProductById($productId = null){
         
+        $sectorId = $this->helper->sanitize($productId);
+
         $sql = 'SELECT 
                     prod.id AS product_id, 
                     prod.company_id ,
@@ -272,7 +376,36 @@ class Process{
                     sec.id AS sector_id,
                     sec.name AS sector_name
                 FROM 
-                    products AS prod, sector_id sec
+                    products AS prod, sector sec
+                WHERE 
+                    prod.sector_id = sec.id AND 
+                    prod.status = 1 AND  
+                    sec.status = 1  AND 
+                    prod.id = '.$productId.'
+        ';
+
+        $query = $this->conn->prepare($sql);
+        $query->execute();
+        
+        if ($query->rowCount() > 0 ){
+            return $query->fetch();
+        }
+        return false;
+    }
+     //gets the company info for a particular user
+    public function getProductsBySector($sectorId = null){
+        
+        $sectorId = $this->helper->sanitize($sectorId);
+
+        $sql = 'SELECT 
+                    prod.id AS product_id, 
+                    prod.company_id ,
+                    prod.name AS product_name,
+                    prod.description AS product_description,
+                    sec.id AS sector_id,
+                    sec.name AS sector_name
+                FROM 
+                    products AS prod, sector sec
                 WHERE 
                     prod.sector_id = '.$sectorId.' AND
                     prod.status = 1 AND  
@@ -289,6 +422,8 @@ class Process{
     }
     //gets the user information
     Public function getUserDetails($userId = null){
+
+        $userId = $this->helper->sanitize($userId);
         
         $sql = 'SELECT * FROM users WHERE user_id = '.$userId.' AND status = 1';
         $query = $this->conn->prepare($sql);
@@ -398,7 +533,7 @@ class Process{
     // Gets all sectors
     public function getSectors(){
         
-        $sql = 'SELECT id, name FROM sector WHERE status = 1 ORDER BY name ASC;';
+        $sql = 'SELECT id, name, is_featured, img_path as sector_img FROM sector WHERE status = 1 ORDER BY name ASC;';
         $query = $this->conn->prepare($sql);
         $query->execute();
         
