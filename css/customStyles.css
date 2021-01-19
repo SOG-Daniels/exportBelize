@@ -1,5 +1,5 @@
 /* Overiding or adding of styling to some css classes defined for the template */
-figure.effect-oscar img {
+/* figure.effect-oscar img {
   height: auto;
   width: 100%;
 }
@@ -77,11 +77,9 @@ fieldset[disabled] .bs-btn-primary.active {
 }
 
 .about-message{
-  /* background-color: #fdebe9; */
-  /* background-color: #fbd7d3; */
   background-color: #ededed;
 }
-/* CSS for product images is company details*/
+/* CSS for product images is company details/
 figure.effect-oscar .product-img {
   height: 225px;
   width: 100%;
@@ -89,4 +87,4 @@ figure.effect-oscar .product-img {
 .flexportfolio.flexslider .slides img {
   height: auto;
 
-}
+} */

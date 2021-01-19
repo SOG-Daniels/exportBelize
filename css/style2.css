@@ -590,7 +590,12 @@ blockquote {
 }
 
 .flexportfolio.flexslider .slides img {
-  height: auto;
+  /* height: auto; */
+  height: 50%;
+  width: 50%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto
 }
 
 /*-- Pagination --*/

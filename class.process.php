@@ -315,7 +315,8 @@ class Process{
         try {
             $sql = 'SELECT 
                         prod.id AS product_id, 
-                        prod.company_id ,
+                        prod.company_id,
+                        com.name AS company_name,
                         prod.hs_code,
                         prod.name AS product_name,
                         prod.description AS product_description,
@@ -323,9 +324,11 @@ class Process{
                         sec.name AS sector_name
                     FROM 
                         products AS prod, 
-                        sector AS sec
+                        sector AS sec,
+                        company AS com
                     WHERE 
                         prod.sector_id = sec.id  AND
+                        prod.company_id = com.id AND
                         prod.status = 1 AND 
                         sec.status = 1 AND 
                         company_id = '.$companyId.' AND
@@ -366,12 +369,13 @@ class Process{
     //Gets a product by ID
     public function getProductById($productId = null){
         
-        $sectorId = $this->helper->sanitize($productId);
+        $productId = $this->helper->sanitize($productId);
 
         $sql = 'SELECT 
                     prod.id AS product_id, 
                     prod.company_id ,
                     prod.name AS product_name,
+                    prod.hs_code,
                     prod.description AS product_description,
                     sec.id AS sector_id,
                     sec.name AS sector_name
@@ -392,7 +396,67 @@ class Process{
         }
         return false;
     }
-     //gets the company info for a particular user
+    //Gets the product that has the same name
+    public function getProductByName($productName = null){
+        
+        $productName = $this->helper->sanitize($productName);
+
+        $sql = 'SELECT 
+                    prod.id AS product_id, 
+                    prod.company_id ,
+                    prod.name AS product_name,
+                    prod.hs_code,
+                    prod.description AS product_description,
+                    sec.id AS sector_id,
+                    sec.name AS sector_name
+                FROM 
+                    products AS prod, sector sec
+                WHERE 
+                    prod.sector_id = sec.id AND 
+                    prod.status = 1 AND  
+                    sec.status = 1  AND 
+                    prod.name = "'.$productName.'"
+        ';
+
+        $query = $this->conn->prepare($sql);
+        $query->execute();
+        
+        if ($query->rowCount() > 0 ){
+            return $query->fetchAll();
+        }
+        return false;
+    }
+    //Gets all products by HS Code
+    public function getProductsByHsCode($hsCode = null){
+        
+        $hsCode = $this->helper->sanitize($hsCode);
+
+        $sql = 'SELECT 
+                    prod.id AS product_id, 
+                    prod.company_id ,
+                    prod.name AS product_name,
+                    prod.hs_code,
+                    prod.description AS product_description,
+                    sec.id AS sector_id,
+                    sec.name AS sector_name
+                FROM 
+                    products AS prod, sector sec
+                WHERE 
+                    prod.sector_id = sec.id AND 
+                    prod.status = 1 AND  
+                    sec.status = 1  AND 
+                    prod.hs_code = "'.$hsCode.'"
+        ';
+
+        $query = $this->conn->prepare($sql);
+        $query->execute();
+        
+        if ($query->rowCount() > 0 ){
+            return $query->fetchAll();
+        }
+        return false;
+    }
+    //gets the company info for a particular user
     public function getProductsBySector($sectorId = null){
         
         $sectorId = $this->helper->sanitize($sectorId);
@@ -401,6 +465,7 @@ class Process{
                     prod.id AS product_id, 
                     prod.company_id ,
                     prod.name AS product_name,
+                    prod.hs_code,
                     prod.description AS product_description,
                     sec.id AS sector_id,
                     sec.name AS sector_name

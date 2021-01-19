@@ -57,6 +57,43 @@
             
             }
 
+        }else if ($_GET['page'] == 'forgotPassword'){
+            
+            if (!empty($_SESSION['USERDATA'])){
+                // IF USER IS SIGNED IN NO SIGNUP PAGE IS AVAILABLE
+               
+                if ($_SESSION['USERDATA']['user_type'] == 'company'){
+
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
+                    $result['socialContacts'] = $process->getSocialContact();
+                    $result['socialContactList'] = $process->getSocialContactList($result['companyDetails'][0]['id']);
+                    $result['exportMarkets'] = $process->getExportMarkets();
+                    $result['exportMarketList'] = $process->getExportMarketList($result['companyDetails'][0]['id']);
+                
+                    $pageContent = $view->companyProfile($result);
+                }else if($_SESSION['USERDATA']['user_type'] == 'admin'){
+                    
+                    $pageContent = $view->adminProfile();
+
+                }else if ($_SESSION['USERDATA']['user_type'] == 'buyer'){
+
+                    $result['sectors'] = $process->getSectors();
+                    $result['companyDetails'] = $process->getCompanyDetails($_SESSION['COMPANYDATA'][0]['id']);
+                    $result['interest'] = $process->getInterest();
+
+                    $pageContent = $view->buyerProfile($result);
+
+                }else{
+                    $pageContent = $view->pageNotFound();
+                }
+
+            }else{
+
+                $pageContent = $view->forgotPassword();
+            
+            }
+
+
         }else if ($_GET['page'] == 'companyRegistration'){
 
             $pageContent = $view->companyRegistrationForm();
@@ -446,8 +483,62 @@
                 
             }
 
-        }else if($_POST['action'] == 'buyerRegistration'){
+        }else if($_POST['action'] == 'productSearch'){
 
+            $products = [];
+            $result['sectorId'] = $_POST['sectorId'];
+            $result['productNameSearch'] = $_POST['productName'];
+            $result['sectors'] = $process->getSectors();
+
+            //filtering out products for output
+            if (isset($_POST['sectorId']) && $_POST['sectorId'] != 0){
+                $products = $process->getProductsBySector($_POST['sectorId']);
+            }
+            if (isset($_POST['hsCode']) && $_POST['hsCode'] != null){
+
+                if (!empty($products)){
+                    // apply filter to products array
+                    $productsWithHsCode = [];
+
+                    foreach ($products as $key => $product){
+                        if ($product['hs_code'] == $_POST['hsCode']){
+                            $productsWithHsCode[] = $products[$key];
+                        }
+                    }
+                    $products = $productsWithHsCode;
+                }else{
+                    $product = $process->getProductsByHsCode($_POST['hsCode']);
+                }
+
+            }
+            if (isset($_POST['productName']) && $_POST['productName'] != null){
+                
+                if (!empty($products)){
+                    // apply filter to products array
+                    $productsWithFilterName = [];
+
+                    foreach ($products as $key => $product){
+                        if ($product['product_name'] == $_POST['productName']){
+                            $productsWithfilterName[] = $products[$key];
+                        }
+                    }
+                    $products = $productsWithfilterName;
+                }else{
+                    $products = $process->getProductByName($_POST['productName']);
+                }
+            }
+
+            if (!empty($products)){
+                //getting product details to display on view
+                foreach ($products as $key => $product){
+                    $prodDetail = $process->getCompanyProductDetail($product['company_id'], $product['product_id']);
+                    $result['products'][] = $prodDetail[0];
+                }
+            }
+
+            $pageContent = $view->viewProducts($result);
+
+        }else if($_POST['action'] == 'buyerRegistration'){
             $userExist = $process->getUserSalt($_POST['email']);
             $result['sectors'] = $process->getSectors();
 

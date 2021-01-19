@@ -217,7 +217,7 @@ class Ui {
 
             }
         }
-        
+
         //getting featured products for display
         foreach ($data['products'] as $key => $product){
             
@@ -451,12 +451,22 @@ class Ui {
     }
     //returns a search bar
     public function searchBar($data = null){
+        
         $sectorOptions = '';
+        $hsCode = $data['hsCode'] ?? '';
+        $productNameSearch = $data['productNameSearch'] ?? '';
 
-        foreach ($data as $sector){
-            $sectorOptions .= '
-                <option value="'.$sector['id'].'">'.$sector['name'].'</option>
-            ';
+        foreach ($data['sectors'] as $sector){
+
+            if (isset($data['sectorId']) && $data['sectorId'] == $sector['id']){
+                $sectorOptions .= '
+                    <option value="'.$sector['id'].'" selected>'.$sector['name'].'</option>
+                ';
+            }else{
+                $sectorOptions .= '
+                    <option value="'.$sector['id'].'">'.$sector['name'].'</option>
+                ';
+            }
         }
         $html = '
             <div class="container pt-3">
@@ -464,31 +474,35 @@ class Ui {
                     <div class="col-md-12 mx-auto">
                         <div class="card shadow" >
                             <div class="card-body">
-                                <h3 class="card-title">Search For ... </h3>
-                                <div class="row">
-                                    <div class="col-md-4 col-12 ">
-                                        <label for="inputEmail3"><h4 class="d-inline">Sector</h4></label>
-                                        <div class="input-group">
-                                            <select class="form-control">
-                                                <option value="0"> NONE </option>
-                                                '.$sectorOptions.' 
-                                            </select>
+                                <h3 class="card-title">Search For Product By... </h3>
+                                <form id="productSearch" action="'.BASE_URL.'" method="post">
+                                    <input type="hidden" name="action" value="productSearch">
+                                    <div class="row">
+                                        <div class="col-md-3 col-12 pt-1">
+                                            <label for="inputEmail3"><h4 class="d-inline">Sector</h4></label>
+                                            <div class="input-group">
+                                                <select name="sectorId" class="form-control">
+                                                    <option value="0"> NONE </option>
+                                                    '.$sectorOptions.' 
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-3 col-12 pt-1">
+                                            <label for="search"><h4 class="d-inline">HS Code</h4></label>
+                                                    <input type="text" name="hsCode" class="form-control" placeholder="eg. H320" aria-label="" value="'.$hsCode.'" aria-describedby="basic-addon2">
+                                        </div>  
+                                        <div class="col-md-3 col-12 pt-1">
+                                            <label for="search"><h4 class="d-inline">Product Name</h4></label>
+                                            <input type="text" class="form-control" name="productName" placeholder="eg. Habanero Sauce..." aria-label="" value="'.$productNameSearch.'" aria-describedby="basic-addon2">
+                                        </div>  
+                                        <div class="col-md-3 col-12">
+                                            <span class="d-flex justify-content-center pt-md-3">
+                                                <button class="btn btn-secondary pl-5 pr-5 pt-2 pb-3 mt-4" type="submit"><i class="fa fa-search fa-lg"></i> Find Product</button>
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 col-12 ">
-                                        <label for="search"><h4 class="d-inline">HS Code</h4></label>
-                                                <input type="text" name="hsCode" class="form-control" placeholder="eg. H320" aria-label="" aria-describedby="basic-addon2">
-                                    </div>  
-                                    <div class="col-md-4 col-12 ">
-                                        <label for="search"><h4 class="d-inline">Product Name</h4></label>
-                                        <div class="input-group">
-                                                <input type="text" class="form-control" placeholder="eg. Habanero Sauce..." aria-label="" aria-describedby="basic-addon2">
-                                                <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button"><i class="fa fa-search fa-lg"></i></button>
-                                                </div>
-                                        </div>
-                                    </div>  
-                                </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -497,58 +511,223 @@ class Ui {
         ';
         return $html;
     }
+    //Displays the products for users
     public function viewProducts($data = null){
+
+
+            echo "<br><br><br><br>";
+            echo "<pre>";
+            print_r($data);
+            echo "</pre>";
+        $productsFound = '';
+
+        if (!empty($data['products'])){
+            foreach( $data['products'] as $key => $product){
+                
+                $productsFound .= '
+                    <div class="col-sm-3 pb-2 portfolio-static-item ">
+                        <div class="grid">
+                            <figure class="m-0 effect-oscar">
+                                <img src="'.BASE_URL.$product['productImages'][0]['path'].'" alt="'.$product['product_name'].' Image">
+                                <figcaption>
+                                    <h3>'.$product['product_name'].'</h3>
+                                    <a class="link icon-pentagon" href="'.BASE_URL.'index.php?page=productDetails&productId='.$product['product_id'].'"><i class="fa fa-link"></i></a>
+                                    <a class="view icon-pentagon" data-rel="prettyPhoto" href="'.BASE_URL.$product['productImages'][0]['path'].'"><i class="fa fa-search"></i></a>
+                                </figcaption>
+                            </figure>
+                            <div class="portfolio-static-desc">
+                                <h3>'.$product['product_name'].'<a class="link" href="#"><!--<i class="fa fa-heart-o fa-lg"></i>--></a></h3>
+                                <span><a href="'.BASE_URL.'index.php/?page=companyDetail&companyId=1">'.ucwords($product['company_name']).'</a></span>
+                            </div>
+                        </div>
+                        <!--/ grid end -->
+                    </div>
+                ';
+            }
+            $resultTitle = 'Products Found...';
+        }else{
+
+            $resultTitle = 'No Products Found...';
+        }
+
+        // <!-- Portfolio start 
+        // <section id="main-container" class="portfolio-static">
+        //     <div class="container">
+        //         <div class="row">
+        //             <div class="col-md-12 heading">
+        //                 <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
+        //                 <h2 class="title classic">'.$resultTitle.'</h2>
+        //             </div>
+        //         </div>
+        //         <div class="row">
+        //             '.$productsFound.'
+        //         </div><!-- Content row end ->
+        //     </div><!-- Container end ->
+        // </section><!-- Portfolio end -->
+
 
         $html = $this->banner('Products', 
             '<li class="breadcrumb-item text-white" aria-current="page">Products</li>'
-            ).$this->searchBar($data['sectors'] ?? '').'
+            ).$this->searchBar($data ?? '').'
 
-                    <!-- Portfolio start -->
-                    <section id="main-container" class="portfolio-static">
-                        <div class="container">
-                            
-                            <div class="row">
-                                <div class="col-md-12 heading">
-                                    <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
-                                    <h2 class="title classic">Products Found</h2>
+            <section id="main-container" class="portfolio-static">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-3 portfolio-static-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <!-- <img src="images/portfolio/portfolio1.jpg" alt=""> -->
+                                    <figcaption>
+                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
+                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg1.jpg"><i
+                                                class="fa fa-search"></i></a>
+                                    </figcaption>
+                                </figure>
+                                <div class="portfolio-static-desc">
+                                    <h3>Startup Business</h3>
+                                    <span><a href="#">Illustrations</a></span>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-sm-3 pb-2">
-                                    <div class="grid">
-                                        <figure class="m-0 effect-oscar">
-                                            <img src="images/portfolio/portfolio1.jpg" alt="">
-                                            <figcaption>
-                                                <h3>Product Name</h3>
-                                                <a class="link icon-pentagon" href="'.BASE_URL.'index.php?page=productDetail"><i class="fa fa-link"></i></a>
-                                            </figcaption>
-                                        </figure>
-                                        <div class="portfolio-static-desc">
-                                        <h3>Product Name  <a class="link" href="#"><!--<i class="fa fa-heart-o fa-lg"></i>--></a></h3>
-                                        </div>
-                                    </div>
-                                    <!--/ grid end -->
+                            <!--/ grid end -->
+                        </div>
+                        <!--/ item 1 end -->
+            
+                        <div class="col-sm-3 portfolio-static-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="images/portfolio/portfolio2.jpg" alt="">
+                                    <figcaption>
+                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
+                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg2.jpg"><i
+                                                class="fa fa-search"></i></a>
+                                    </figcaption>
+                                </figure>
+                                <div class="portfolio-static-desc">
+                                    <h3>Easy to Lanunch</h3>
+                                    <span><a href="#">Webdesign</a></span>
                                 </div>
-                                <div class="col-sm-3 pb-2">
-                                    <div class="grid">
-                                        <figure class="m-0 effect-oscar">
-                                            <img src="images/portfolio/portfolio2.jpg" alt="">
-                                            <figcaption>
-                                                <h3>Product Name</h3>
-                                                <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sector=energy"><i class="fa fa-link"></i></a>
-                                            </figcaption>
-                                        </figure>
-                                        <div class="portfolio-static-desc">
-                                        <h3>Product Name  <a class="link" href="#"><!--<i class="fa fa-heart-o fa-lg"></i>--></a></h3>
-                                        </div>
-                                    </div>
+                            </div>
+                            <!--/ grid end -->
+                        </div>
+                        <!--/ item 2 end -->
+            
+                        <div class="col-sm-3 portfolio-static-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="images/portfolio/portfolio3.jpg" alt="">
+                                    <figcaption>
+                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
+                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg3.jpg"><i
+                                                class="fa fa-search"></i></a>
+                                    </figcaption>
+                                </figure>
+                                <div class="portfolio-static-desc">
+                                    <h3>Your Business</h3>
+                                    <span><a href="#">Ui Elements</a></span>
                                 </div>
-                                
-                             
-                            </div><!-- Content row end -->
-                        </div><!-- Container end -->
-                    </section><!-- Portfolio end -->
-
+                            </div>
+                            <!--/ grid end -->
+                        </div>
+                        <!--/ item 3 end -->
+            
+                        <div class="col-sm-3 portfolio-static-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="images/portfolio/portfolio4.jpg" alt="">
+                                    <figcaption>
+                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
+                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg1.jpg"><i
+                                                class="fa fa-search"></i></a>
+                                    </figcaption>
+                                </figure>
+                                <div class="portfolio-static-desc">
+                                    <h3>Prego Match</h3>
+                                    <span><a href="#">Media Elements</a></span>
+                                </div>
+                            </div>
+                            <!--/ grid end -->
+                        </div>
+                        <!--/ item 4 end -->
+            
+                        <div class="col-sm-3 portfolio-static-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="images/portfolio/portfolio5.jpg" alt="">
+                                    <figcaption>
+                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
+                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg2.jpg"><i
+                                                class="fa fa-search"></i></a>
+                                    </figcaption>
+                                </figure>
+                                <div class="portfolio-static-desc">
+                                    <h3>Fashion Brand</h3>
+                                    <span><a href="#">Graphics Media</a></span>
+                                </div>
+                            </div>
+                            <!--/ grid end -->
+                        </div>
+                        <!--/ item 5 end -->
+            
+                        <div class="col-sm-3 portfolio-static-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="images/portfolio/portfolio6.jpg" alt="">
+                                    <figcaption>
+                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
+                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg3.jpg"><i
+                                                class="fa fa-search"></i></a>
+                                    </figcaption>
+                                </figure>
+                                <div class="portfolio-static-desc">
+                                    <h3>The Insidage</h3>
+                                    <span><a href="#">Material Design</a></span>
+                                </div>
+                            </div>
+                            <!--/ grid end -->
+                        </div>
+                        <!--/ item 6 end -->
+            
+                        <div class="col-sm-3 portfolio-static-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="images/portfolio/portfolio7.jpg" alt="">
+                                    <figcaption>
+                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
+                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg1.jpg"><i
+                                                class="fa fa-search"></i></a>
+                                    </figcaption>
+                                </figure>
+                                <div class="portfolio-static-desc">
+                                    <h3>Light Carpet</h3>
+                                    <span><a href="#">Mockup</a></span>
+                                </div>
+                            </div>
+                            <!--/ grid end -->
+                        </div>
+                        <!--/ item 7 end -->
+            
+                        <div class="col-sm-3 portfolio-static-item">
+                            <div class="grid">
+                                <figure class="m-0 effect-oscar">
+                                    <img src="images/portfolio/portfolio8.jpg" alt="">
+                                    <figcaption>
+                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
+                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg2.jpg"><i
+                                                class="fa fa-search"></i></a>
+                                    </figcaption>
+                                </figure>
+                                <div class="portfolio-static-desc">
+                                    <h3>Amazing Keyboard</h3>
+                                    <span><a href="#">Photography</a></span>
+                                </div>
+                            </div>
+                            <!--/ grid end -->
+                        </div>
+                        <!--/ item 8 end -->
+            
+                    </div><!-- Content row end -->
+                </div><!-- Container end -->
+            </section><!-- Portfolio end --
         ';
         return $html;
 
@@ -1586,7 +1765,8 @@ class Ui {
 
         ';
         return $html;
-    }   
+    }
+    //Displays info about EXPORTBelize as static information   
     public function aboutUs(){
         $html = '
             '.$this->banner('About Us',
@@ -1722,7 +1902,7 @@ class Ui {
                             <div class="col-md-3 col-sm-6">
                                 <div class="team wow slideInLeft">
                                     <div class="img-hexagon">
-                                        <img src="images/team/team1.jpg" alt="">
+                                        <img src="'.BASE_URL.'images/team/team1.jpg" alt="">
                                         <span class="img-top"></span>
                                         <span class="img-bottom"></span>
                                     </div>
@@ -1730,9 +1910,9 @@ class Ui {
                                         <h3>Full Name</h3>
                                         <p>Job Title</p>
                                         <div class="team-social">
-                                            <a class="fb" href="#"><i class="fa fa-facebook"></i></a>
-                                            <a class="twt" href="#"><i class="fa fa-twitter"></i></a>
-                                            <a class="linkdin" href="#"><i class="fa fa-linkedin"></i></a>
+                                            <a class="fb" href="#"><i class="fab fa-facebook"></i></a>
+                                            <a class="twt" href="#"><i class="fab fa-twitter"></i></a>
+                                            <a class="linkdin" href="#"><i class="fab fa-linkedin"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -1741,7 +1921,7 @@ class Ui {
                             <div class="col-md-3 col-sm-6">
                                 <div class="team wow slideInLeft">
                                     <div class="img-hexagon">
-                                        <img src="images/team/team2.jpg" alt="">
+                                        <img src="'.BASE_URL.'images/team/team2.jpg" alt="">
                                         <span class="img-top"></span>
                                         <span class="img-bottom"></span>
                                     </div>
@@ -1749,9 +1929,9 @@ class Ui {
                                         <h3>Full Name</h3>
                                         <p>Job Title</p>
                                         <div class="team-social">
-                                            <a class="fb" href="#"><i class="fa fa-facebook"></i></a>
-                                            <a class="twt" href="#"><i class="fa fa-twitter"></i></a>
-                                            <a class="linkdin" href="#"><i class="fa fa-linkedin"></i></a>
+                                            <a class="fb" href="#"><i class="fab fa-facebook"></i></a>
+                                            <a class="twt" href="#"><i class="fab fa-twitter"></i></a>
+                                            <a class="linkdin" href="#"><i class="fab fa-linkedin"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -1760,7 +1940,7 @@ class Ui {
                             <div class="col-md-3 col-sm-6">
                                 <div class="team wow slideInRight">
                                     <div class="img-hexagon">
-                                        <img src="images/team/team3.jpg" alt="">
+                                        <img src="'.BASE_URL.'images/team/team3.jpg" alt="">
                                         <span class="img-top"></span>
                                         <span class="img-bottom"></span>
                                     </div>
@@ -1768,9 +1948,9 @@ class Ui {
                                         <h3>Full Name</h3>
                                         <p>Job Title</p>
                                         <div class="team-social">
-                                            <a class="fb" href="#"><i class="fa fa-facebook"></i></a>
-                                            <a class="twt" href="#"><i class="fa fa-twitter"></i></a>
-                                            <a class="linkdin" href="#"><i class="fa fa-linkedin"></i></a>
+                                            <a class="fb" href="#"><i class="fab fa-facebook"></i></a>
+                                            <a class="twt" href="#"><i class="fab fa-twitter"></i></a>
+                                            <a class="linkdin" href="#"><i class="fab fa-linkedin"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -1779,7 +1959,7 @@ class Ui {
                             <div class="col-md-3 col-sm-6">
                                 <div class="team animate wow slideInRight">
                                     <div class="img-hexagon">
-                                        <img src="images/team/team4.jpg" alt="">
+                                        <img src="'.BASE_URL.'images/team/team4.jpg" alt="">
                                         <span class="img-top"></span>
                                         <span class="img-bottom"></span>
                                     </div>
@@ -1787,9 +1967,9 @@ class Ui {
                                         <h3>Full Name</h3>
                                         <p>Job Title</p>
                                         <div class="team-social">
-                                            <a class="fb" href="#"><i class="fa fa-facebook"></i></a>
-                                            <a class="twt" href="#"><i class="fa fa-twitter"></i></a>
-                                            <a class="linkdin" href="#"><i class="fa fa-linkedin"></i></a>
+                                            <a class="fb" href="#"><i class="fab fa-facebook"></i></a>
+                                            <a class="twt" href="#"><i class="fab fa-twitter"></i></a>
+                                            <a class="linkdin" href="#"><i class="fab fa-linkedin"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -2631,36 +2811,32 @@ class Ui {
     }
     public function forgotPassword(){
         $html = '
-            '.$this->banner('Thank you for ').'
+            '.$this->banner('Forgot Password ?', 
+                '<li class="breadcrumb-item text-white" aria-current="page">Forgot Password</li>'
+            ).'   
             <section class="buy-pro" style="padding-top: 20px;">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-8 mx-auto">
                             <div class="card shadow" >
                                 <div class="card-body">
-                                    <h3 class="card-title">Welcome Back!</h3>
+                                    <h3 class="card-title">Forgot your password?</h3>
                                     <form action="'.BASE_URL.'index.php" method="POST">
                                         <input type="hidden" name="action" value="signIn">
                                         <div class="form-group row">
                                             <label for="inputEmail3" class="col-sm-2 col-form-label">Email</label>
                                             <div class="col-sm-10">
-                                            <input type="email" class="form-control" name="email" id="inputEmail3" placeholder="Email">
+                                            <input type="email" class="form-control" name="email" id="inputEmail3" placeholder="Enter your Email...">
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="inputPassword3" class="col-sm-2 col-form-label">Password</label>
                                             <div class="col-sm-10">
-                                            <input type="password" name="password" class="form-control" id="inputPassword3" placeholder="Password">
-                                            </div>
-                                        </div>                                      
-                                        <div class="form-group row">
-                                            <div class="col-sm-10">
-                                                <a class="card-link" href="'.BASE_URL.'index.php?page=forgotPassword" >Forgot Password?</a>
+                                                <a class="card-link" href="'.BASE_URL.'index.php?page=signIn" >I remember my password</a>
                                             </div>
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-sm-12">
-                                            <button type="submit" class="btn btn-primary float-right">Sign in</button>
+                                            <button type="submit" class="btn btn-primary float-right">Request Password Reset</button>
                                             </div>
                                         </div>
                                     </form>
