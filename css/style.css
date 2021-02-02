@@ -107,9 +107,18 @@ h5, .h5 {
   border: 2px solid transparent;
 }
 
+.btn.btn-primary.txt-white {
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.btn.btn-primary.txt-white:hover {
+  border: 2px solid transparent;
+}
+
 .btn.btn-primary.square {
   border-radius: 0;
-  color: #fff;
+  //color: #fff;
 }
 
 .btn.btn-primary.solid {

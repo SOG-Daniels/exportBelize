@@ -118,7 +118,7 @@ class Ui {
         }else{
             $profileDropDown = '
                 <li class="nav-item pl-md-4 pt-md-2">
-                    <a href="'.BASE_URL.'?page=signIn" class="nav-item btn btn-primary">Sign In</a>
+                    <a href="'.BASE_URL.'signIn" class="nav-item btn btn-primary">Sign In</a>
                 </li>
             ';
         }
@@ -140,13 +140,13 @@ class Ui {
                                     <a class="nav-link" href="'.BASE_URL.'">Home</a></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="'.BASE_URL.'index.php/?page=viewProducts">View Products</a></a>
+                                    <a class="nav-link" href="'.BASE_URL.'products">Products</a></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link " href="'.BASE_URL.'index.php/?page=aboutUs">About Us</a></a>
+                                    <a class="nav-link " href="'.BASE_URL.'aboutUs">About Us</a></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="'.BASE_URL.'index.php/?page=contact">Contact</a></a>
+                                    <a class="nav-link" href="'.BASE_URL.'contact">Contact</a></a>
                                 </li>
                                 '.$profileDropDown.'
                                 
@@ -167,13 +167,17 @@ class Ui {
         $featuredSectors = '';
         $featuredCompanies = ''; 
         $productImages = '';
+	$cName = '';
 
         //getting featured companies for display
         foreach($data['companys'] as $key => $company){
             if ($company['is_featured'] == 1){
+
+		$cName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($company['name'])) );
+
                 $featuredCompanies .= '
                     <figure class="m-0 item client_logo">
-                        <a href="'.BASE_URL.'?page=companyDetail&companyId='.$company['id'].'">
+                        <a href="'.BASE_URL.'company/'.$cName.'/'.encrypt($company['id']).'">
                             <img src="'.BASE_URL.$company['logo_img'].'" alt="'.$company['name'].' Logo">
                         </a>
                     </figure>
@@ -183,8 +187,14 @@ class Ui {
 
         //getting featured sectors for display
         foreach ($data['sectors'] as $key => $sector){
+
+	    $sName = '';
+
             if ($sector['is_featured'] == 1){
 
+		$sName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($sector['name'])) );
+
+		//will display the first 2 images bigger than the remaining 3
                 if ($key <= 1){
                     $featuredSectors .= '
                         <div class="col-sm-6 isotope-item">
@@ -193,7 +203,7 @@ class Ui {
                                     <img src="'.BASE_URL.$sector['sector_img'].'" alt="'.$sector['name'].'">
                                     <figcaption>
                                         <h3>'.$sector['name'].'</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sectorId='.$sector['id'].'"><i class="fa fa-link"></i></a>
+                                        <a class="link icon-pentagon" href="'.BASE_URL.'products/sector/'.$sName.'/'.encrypt($sector['id']).'"><i class="fa fa-link"></i></a>
                                     </figcaption>
                                 </figure>
                             </div>
@@ -207,7 +217,7 @@ class Ui {
                                     <img src="'.BASE_URL.$sector['sector_img'].'" alt="'.$sector['name'].'">
                                     <figcaption>
                                         <h3>'.$sector['name'].'</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'?page=viewProducts&sectorId='.$sector['id'].'"><i class="fa fa-link"></i></a>
+                                        <a class="link icon-pentagon" href="'.BASE_URL.'products/sector/'.urlencode($sName).'/'.encrypt($sector['id']).'"><i class="fa fa-link"></i></a>
                                     </figcaption>
                                 </figure>
                             </div>
@@ -218,10 +228,15 @@ class Ui {
             }
         }
 
+	
         //getting featured products for display
         foreach ($data['products'] as $key => $product){
+
+	    $pName = '';
             
             if (isset($product['productImages'][0]['path']) && $product['is_featured'] == 1){
+
+		$pName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($product['product_name'])) );
 
                 $featuredProducts .= '
                     <div class="col-sm-4 isotope-item">
@@ -230,7 +245,7 @@ class Ui {
                                 <img src="'.BASE_URL.$product['productImages'][0]['path'].'" alt="">
                                 <figcaption>
                                     <h3>'.$product['product_name'].'</h3>
-                                    <a class="link icon-pentagon" href="'.BASE_URL.'?page=productDetails&productId='.$product['product_id'].'"><i class="fa fa-link"></i></a>
+                                    <a class="link icon-pentagon" href="'.BASE_URL.'products/'.$pName.'/'.encrypt($product['product_id']).'"><i class="fa fa-link"></i></a>
                                 </figcaption>
                             </figure>
                         </div>
@@ -324,8 +339,8 @@ class Ui {
                     <div class="row">
                         <div class="col-12">
                             <h3>Get started by registering as a belizean business or buyer</h3>
-                            <a href="'.BASE_URL.'index.php?page=buyerRegistration" class="float-right btn btn-primary solid">Buyer</a>
-                            <a href="'.BASE_URL.'index.php?page=companyRegistration" class="float-right btn btn-primary white">Belizean Business</a>
+                            <a href="'.BASE_URL.'registration/buyer" class="float-right btn btn-primary solid">Buyer</a>
+                            <a href="'.BASE_URL.'registration/company" class="float-right btn btn-primary white">Belizean Business</a>
                         </div>
                     </div>
                 </div>
@@ -450,24 +465,40 @@ class Ui {
         return $html;
     }
     //returns a search bar
-    public function searchBar($data = null){
+    public function searchBar($data = []){
         
         $sectorOptions = '';
-        $hsCode = $data['hsCode'] ?? '';
-        $productNameSearch = $data['productNameSearch'] ?? '';
+        $exportOptions = '';
+        $hsCode        = $data['searchBy']['hsCode'] ?? '';
+        $productName   = $data['searchBy']['productName'] ?? '';
 
-        foreach ($data['sectors'] as $sector){
+	//getting the different sectors available
+        foreach ($data['exportMarkets'] as $exportMarket){
 
-            if (isset($data['sectorId']) && $data['sectorId'] == $sector['id']){
-                $sectorOptions .= '
-                    <option value="'.$sector['id'].'" selected>'.$sector['name'].'</option>
+            if (!empty($data['searchBy']) && decrypt($data['searchBy']['exportMarketId']) == $exportMarket['id']){
+                $exportOptions .= '
+                    <option value="'.encrypt($exportMarket['id']).'" selected>'.$exportMarket['name'].'</option>
                 ';
             }else{
-                $sectorOptions .= '
-                    <option value="'.$sector['id'].'">'.$sector['name'].'</option>
+                $exportOptions .= '
+                    <option value="'.encrypt($exportMarket['id']).'">'.$exportMarket['name'].'</option>
                 ';
             }
         }
+	//getting the different export markets available
+        foreach ($data['sectors'] as $sector){
+
+            if (!empty($data['sector']) && decrypt($data['searchBy']['sectorId']) == $sector['id']){
+                $sectorOptions .= '
+                    <option value="'.encrypt($sector['id']).'" selected>'.$sector['name'].'</option>
+                ';
+            }else{
+                $sectorOptions .= '
+                    <option value="'.encrypt($sector['id']).'">'.$sector['name'].'</option>
+                ';
+            }
+        }
+
         $html = '
             <div class="container pt-3">
                 <div class="row">
@@ -479,6 +510,15 @@ class Ui {
                                     <input type="hidden" name="action" value="productSearch">
                                     <div class="row">
                                         <div class="col-md-3 col-12 pt-1">
+                                            <label for="search"><h4 class="d-inline">Product Name</h4></label>
+                                            <input type="text" class="form-control" name="productName" placeholder="eg. Habanero Sauce..." aria-label="" value="'.$productNameSearch.'" aria-describedby="basic-addon2">
+                                        </div>  
+					<span id="searchOptions">
+                                        <div class="col-md-3 col-12 pt-1">
+                                            <label for="search"><h4 class="d-inline">HS Code</h4></label>
+                                                    <input type="text" name="hsCode" class="form-control" placeholder="eg. H320" aria-label="" value="'.$hsCode.'" aria-describedby="basic-addon2">
+                                        </div>  
+                                        <div class="col-md-3 col-12 pt-1">
                                             <label for="inputEmail3"><h4 class="d-inline">Sector</h4></label>
                                             <div class="input-group">
                                                 <select name="sectorId" class="form-control">
@@ -489,18 +529,24 @@ class Ui {
                                         </div>
                                         
                                         <div class="col-md-3 col-12 pt-1">
-                                            <label for="search"><h4 class="d-inline">HS Code</h4></label>
-                                                    <input type="text" name="hsCode" class="form-control" placeholder="eg. H320" aria-label="" value="'.$hsCode.'" aria-describedby="basic-addon2">
-                                        </div>  
-                                        <div class="col-md-3 col-12 pt-1">
-                                            <label for="search"><h4 class="d-inline">Product Name</h4></label>
-                                            <input type="text" class="form-control" name="productName" placeholder="eg. Habanero Sauce..." aria-label="" value="'.$productNameSearch.'" aria-describedby="basic-addon2">
-                                        </div>  
-                                        <div class="col-md-3 col-12">
-                                            <span class="d-flex justify-content-center pt-md-3">
-                                                <button class="btn btn-secondary pl-5 pr-5 pt-2 pb-3 mt-4" type="submit"><i class="fa fa-search fa-lg"></i> Find Product</button>
-                                            </span>
+                                            <label for="inputEmail3"><h4 class="d-inline">Export Market</h4></label>
+                                            <div class="input-group">
+                                                <select name="exportMarketId" class="form-control">
+                                                    <option value="0"> NONE </option>
+                                                    '.$exportOptions.' 
+                                                </select>
+                                            </div>
                                         </div>
+
+                                        </div>  
+					<div class="row d-flex flex-column">
+						<div class="col-md-3 col-12 align-self-center">
+							<button class="btn btn-primary square solid blank mt-4 btn-block" type="submit">
+								<i class="fa fa-search" style="font-size:20px;vertical-align:middle;"></i> 
+								<span style="vertical-align: middle;"> Find Product </span>
+							</button>
+						</div>
+					</div>
                                     </div>
                                 </form>
                             </div>
@@ -508,226 +554,144 @@ class Ui {
                     </div>
                 </div>
             </div>
+                                                <!--<button class="btn btn-primary square solid blank pl-5 pr-5 pt-2 pb-3 mt-4" type="submit">
+							<i class="fa fa-search" style="font-size:20px;vertical-align:middle;"></i> 
+							<span style="vertical-align: middle;"> Find Product </span>
+						</button>-->
         ';
         return $html;
     }
     //Displays the products for users
     public function viewProducts($data = null){
 
-
-            echo "<br><br><br><br>";
-            echo "<pre>";
-            print_r($data);
-            echo "</pre>";
         $productsFound = '';
+	$pName = '';
+	$cName = '';
+        $count = 0;                             //keeps track of how much cards have been made
+        $maxCardPerPage = 6;                    //capacity of course cards per page for pagination
+        $possibleCardTotal = $maxCardPerPage;   //gets added +6 everytime course cards reach maxCoursePerPage;
+        $pageCount = 0;                         //page count for pagination
+        $pages = '';                            //hold a the pages for the pagination
+        $pageContent = '';                      //contains all the pages and pagination elements
 
         if (!empty($data['products'])){
             foreach( $data['products'] as $key => $product){
                 
+		$pName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($product['product_name'])) );
+		$cName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($product['company_name'])) );
+
                 $productsFound .= '
-                    <div class="col-sm-3 pb-2 portfolio-static-item ">
-                        <div class="grid">
-                            <figure class="m-0 effect-oscar">
-                                <img src="'.BASE_URL.$product['productImages'][0]['path'].'" alt="'.$product['product_name'].' Image">
-                                <figcaption>
-                                    <h3>'.$product['product_name'].'</h3>
-                                    <a class="link icon-pentagon" href="'.BASE_URL.'index.php?page=productDetails&productId='.$product['product_id'].'"><i class="fa fa-link"></i></a>
-                                    <a class="view icon-pentagon" data-rel="prettyPhoto" href="'.BASE_URL.$product['productImages'][0]['path'].'"><i class="fa fa-search"></i></a>
-                                </figcaption>
-                            </figure>
-                            <div class="portfolio-static-desc">
-                                <h3>'.$product['product_name'].'<a class="link" href="#"><!--<i class="fa fa-heart-o fa-lg"></i>--></a></h3>
-                                <span><a href="'.BASE_URL.'index.php/?page=companyDetail&companyId=1">'.ucwords($product['company_name']).'</a></span>
-                            </div>
-                        </div>
-                        <!--/ grid end -->
-                    </div>
+			<div class="col-12 col-sm-6 col-md-4 col-lg-3 portfolio-static-item">
+				<div class="grid">
+					<figure class="m-0 effect-oscar">
+						<img src="'.BASE_URL.$product['productImages'][0]['path'].'" alt="'.$product['product_name'].' Image" class="img-responsive" style="height:235px;">
+						<figcaption>
+						    <a class="link icon-pentagon" href="'.BASE_URL.'products/'.$pName.'/'.encrypt($product['product_id']).'"><i class="fa fa-link"></i></a>
+						    <a class="view icon-pentagon" data-rel="prettyPhoto" href="'.BASE_URL.$product['productImages'][0]['path'].'"><i class="fa fa-search"></i></a>
+						</figcaption>
+					</figure>
+					<div class="portfolio-static-desc">
+						<h3>
+							<a href="'.BASE_URL.'/products/'.$pName.'/'.encrypt($product['product_id']).'">'.$product['product_name'].'</a>
+							<a class="link" href="#"><!--<i class="fa fa-heart-o fa-lg"></i>--></a>
+
+						</h3>
+						<span><a href="'.BASE_URL.'company/'.$cName.'/'.encrypt($product['company_id']).'">'.ucwords($product['company_name']).'</a></span>
+					</div>
+				</div>
+				<!--/ grid end -->
+			</div>
                 ';
+
+		if ($count == ($possibleCardTotal-1)){
+                    //creating page because we reached out maximum cards per page
+                    $pageCount++;
+                    $pages .= '
+                        <div id="page-'.$pageCount.'">
+			    <div class="row">
+				    '.$productsFound.'
+			     </div><!-- Content row end -->
+                        </div>
+                    ';
+                    $productsFound  = '';
+                    $possibleCardTotal += $maxCardPerPage; // increasing count for another page to be added
+
+		}
+
+		$count++;
             }
+
+	    // Creating a page for the remaining Course Cards
+	    if ( $count < $maxCardPerPage ){
+
+                    $pageCount++;
+                    $pages = '
+                        <div id="page-'.$pageCount.'">
+			    <div class="row">
+				    '.$productsFound.'
+			     </div><!-- Content row end -->
+                        </div>
+                    ';
+
+	    }else{
+		    if ($count <= $possibleCardTotal){
+
+			if ($count != ($possibleCardTotal - $maxCardPerPage)){
+			    //if we have more cards than the maximum amount we will add another page
+			    $pageCount++;
+			}
+			$pages .= '
+			<div id="pagination-content">
+			      '.$pages.'
+			</div>
+			';
+
+		    }
+	    }
+
+            // creating pagination
+            $pageContent = '
+                <div id="pagination-content">
+                      '.$pages.'
+                </div>
+                <div class="row pt-3">
+                    <div class="col-12 d-flex justify-content-center">
+                        <div id="pagination-btn">
+                        </div>
+                    </div>
+                </div>
+            ';
+
+
             $resultTitle = 'Products Found...';
+
         }else{
 
             $resultTitle = 'No Products Found...';
         }
 
-        // <!-- Portfolio start 
-        // <section id="main-container" class="portfolio-static">
-        //     <div class="container">
-        //         <div class="row">
-        //             <div class="col-md-12 heading">
-        //                 <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
-        //                 <h2 class="title classic">'.$resultTitle.'</h2>
-        //             </div>
-        //         </div>
-        //         <div class="row">
-        //             '.$productsFound.'
-        //         </div><!-- Content row end ->
-        //     </div><!-- Container end ->
-        // </section><!-- Portfolio end -->
 
 
         $html = $this->banner('Products', 
-            '<li class="breadcrumb-item text-white" aria-current="page">Products</li>'
-            ).$this->searchBar($data ?? '').'
+		 '<li class="breadcrumb-item text-white" aria-current="page">Products</li>'
+		 ).$this->searchBar($data ?? '').'
 
-            <section id="main-container" class="portfolio-static">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-sm-3 portfolio-static-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <!-- <img src="images/portfolio/portfolio1.jpg" alt=""> -->
-                                    <figcaption>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg1.jpg"><i
-                                                class="fa fa-search"></i></a>
-                                    </figcaption>
-                                </figure>
-                                <div class="portfolio-static-desc">
-                                    <h3>Startup Business</h3>
-                                    <span><a href="#">Illustrations</a></span>
-                                </div>
-                            </div>
-                            <!--/ grid end -->
-                        </div>
-                        <!--/ item 1 end -->
-            
-                        <div class="col-sm-3 portfolio-static-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio2.jpg" alt="">
-                                    <figcaption>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg2.jpg"><i
-                                                class="fa fa-search"></i></a>
-                                    </figcaption>
-                                </figure>
-                                <div class="portfolio-static-desc">
-                                    <h3>Easy to Lanunch</h3>
-                                    <span><a href="#">Webdesign</a></span>
-                                </div>
-                            </div>
-                            <!--/ grid end -->
-                        </div>
-                        <!--/ item 2 end -->
-            
-                        <div class="col-sm-3 portfolio-static-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio3.jpg" alt="">
-                                    <figcaption>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg3.jpg"><i
-                                                class="fa fa-search"></i></a>
-                                    </figcaption>
-                                </figure>
-                                <div class="portfolio-static-desc">
-                                    <h3>Your Business</h3>
-                                    <span><a href="#">Ui Elements</a></span>
-                                </div>
-                            </div>
-                            <!--/ grid end -->
-                        </div>
-                        <!--/ item 3 end -->
-            
-                        <div class="col-sm-3 portfolio-static-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio4.jpg" alt="">
-                                    <figcaption>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg1.jpg"><i
-                                                class="fa fa-search"></i></a>
-                                    </figcaption>
-                                </figure>
-                                <div class="portfolio-static-desc">
-                                    <h3>Prego Match</h3>
-                                    <span><a href="#">Media Elements</a></span>
-                                </div>
-                            </div>
-                            <!--/ grid end -->
-                        </div>
-                        <!--/ item 4 end -->
-            
-                        <div class="col-sm-3 portfolio-static-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio5.jpg" alt="">
-                                    <figcaption>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg2.jpg"><i
-                                                class="fa fa-search"></i></a>
-                                    </figcaption>
-                                </figure>
-                                <div class="portfolio-static-desc">
-                                    <h3>Fashion Brand</h3>
-                                    <span><a href="#">Graphics Media</a></span>
-                                </div>
-                            </div>
-                            <!--/ grid end -->
-                        </div>
-                        <!--/ item 5 end -->
-            
-                        <div class="col-sm-3 portfolio-static-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio6.jpg" alt="">
-                                    <figcaption>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg3.jpg"><i
-                                                class="fa fa-search"></i></a>
-                                    </figcaption>
-                                </figure>
-                                <div class="portfolio-static-desc">
-                                    <h3>The Insidage</h3>
-                                    <span><a href="#">Material Design</a></span>
-                                </div>
-                            </div>
-                            <!--/ grid end -->
-                        </div>
-                        <!--/ item 6 end -->
-            
-                        <div class="col-sm-3 portfolio-static-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio7.jpg" alt="">
-                                    <figcaption>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg1.jpg"><i
-                                                class="fa fa-search"></i></a>
-                                    </figcaption>
-                                </figure>
-                                <div class="portfolio-static-desc">
-                                    <h3>Light Carpet</h3>
-                                    <span><a href="#">Mockup</a></span>
-                                </div>
-                            </div>
-                            <!--/ grid end -->
-                        </div>
-                        <!--/ item 7 end -->
-            
-                        <div class="col-sm-3 portfolio-static-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img src="images/portfolio/portfolio8.jpg" alt="">
-                                    <figcaption>
-                                        <a class="link icon-pentagon" href="portfolio-item.html"><i class="fa fa-link"></i></a>
-                                        <a class="view icon-pentagon" data-rel="prettyPhoto" href="images/portfolio/portfolio-bg2.jpg"><i
-                                                class="fa fa-search"></i></a>
-                                    </figcaption>
-                                </figure>
-                                <div class="portfolio-static-desc">
-                                    <h3>Amazing Keyboard</h3>
-                                    <span><a href="#">Photography</a></span>
-                                </div>
-                            </div>
-                            <!--/ grid end -->
-                        </div>
-                        <!--/ item 8 end -->
-            
-                    </div><!-- Content row end -->
-                </div><!-- Container end -->
-            </section><!-- Portfolio end --
+		 <!-- Portfolio start --> 
+		 <section id="main-container" class="portfolio-static">
+		     <div class="container">
+			 <div class="row">
+			     <div class="col-md-12 heading">
+				 <span class="title-icon classic float-left"><i class="fa fa-shopping-cart"></i></span>
+				 <h2 class="title classic">'.$resultTitle.'</h2>
+			     </div>
+			 </div>
+			     '.$pageContent.'
+		     </div><!-- Container end  -->
+		 </section><!-- Portfolio end -->
+	    <script>
+                setPaginationTotalCount('.$pageCount.');
+            </script>
+
         ';
         return $html;
 
@@ -1404,6 +1368,8 @@ class Ui {
 
         $productImages = '';
         $exportList = '';
+	$sName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($data['productDetails'][0]['sector_name'])) );
+	$cName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($data['companyDetails'][0]['name']) ) );
 
         if (!empty($data['exportMarketList']) && !empty($data['exportMarkets'])){
 
@@ -1462,7 +1428,7 @@ class Ui {
                                     <h3 class="widget-title">Sector</h3>
                                         <div class="row">
                                             <div class="col-12 col-md-6">
-                                                <a href="'.BASE_URL.'index.php/?page=viewProducts&filter=sector&sectorId='.$data['productDetails'][0]['sector_id'].'" class="badge badge badge-secondary">
+                                                <a href="'.BASE_URL.'/products/sector/'.$sName.'/'.encrypt($data['productDetails'][0]['sector_id']).'" class="badge badge badge-secondary">
                                                     <label class="d-inline h6"><i class="fas fa-tag"></i> '.$data['productDetails'][0]['sector_name'].'</label>
                                                 </a>
                                             </div>
@@ -1470,7 +1436,7 @@ class Ui {
                                     <br>
                                     <h3 class="widget-title">Exports To</h3>
                                     <div class="row pl-3">
-                                    '.($exportList ?? 'No Export Markets Available.').'
+                                    '.($exportList ?? 'No Export Markets Available yet...').'
                                     </div>
                                 </div>
                             </div>
@@ -1481,16 +1447,21 @@ class Ui {
             </section><!-- Portfolio item end -->
             
             <div class="row about-wrapper-bottom">
-                <div class="col-md-6 ts-padding about-img"
-                    style="height:374px;">
-                                    <img src="'.BASE_URL.$data['companyDetails'][0]['logo_img_path'].'" alt="client">
+                <div class="col-md-6 ts-padding about-img d-flex" style="height:374px;">
+                                    <img src="'.BASE_URL.$data['companyDetails'][0]['logo_img_path'].'" class="mx-auto my-auto" alt="client">
                 </div>
                 <!--/ About image end -->
                 <div class="col-md-6 ts-padding about-message">
                 
                     <div class="heading pb-4">
                         <span class="title-icon classic float-left"><i class="fa fa-building"></i></span>
-                        <h2 class="title">'.$data['companyDetails'][0]['name'].'<span class="title-desc"><a href="'.BASE_URL.'index.php/?page=companyDetail&companyId='.$data['companyDetails'][0]['id'].'"><i class="fa fa-link"></i> Check out our profile!</a></span></h2>
+                        <h2 class="title">'.$data['companyDetails'][0]['name'].'<span class="title-desc">
+			<a href="'.BASE_URL.'company/'.$cName.'/'.encrypt($data['companyDetails'][0]['id']).'">
+				<i class="fa fa-link"></i> 
+					Check out our profile!
+			</a>
+			</span>
+			</h2>
                     </div>
 
                     <p>
@@ -1571,29 +1542,34 @@ class Ui {
 
                 if(!in_array($product['sector_id'], $sectors)){
                     
+		    $sName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($product['sector_name'])) );
+
                     $sectorTags .='
-                        <span class="pr-1 pb-2">
-                            <a href="'.BASE_URL.'index.php/?page=viewProducts&filter=sector&sectorId='.$product['sector_id'].'" class="badge badge badge-secondary">
+                        <span class="pr-2 pb-5">
+                            <a href="'.BASE_URL.'products/sector/'.$sName.'/'.encrypt($product['sector_id']).'" class="badge badge badge-secondary mb-2">
                                 <label class="d-inline h6"><i class="fas fa-tag"></i> '.$product['sector_name'].'</label>
                             </a>
                         </span>
                     ';
 
-                    $sectorOptions .= '<li><a href="#" data-filter=".'.$sectorClass[0].'_'.$product['sector_id'].'">'.ucfirst($product['sector_name']).'</a></li>';
+                    $sectorOptions .= '<li><a href="#" data-filter=".'.$sectorClass[0].'_'.str_replace('=', '',encrypt($product['sector_id'])).'">'.ucfirst($product['sector_name']).'</a></li>';
                 }
                 if(!empty($product['productImages']) && isset($product['productImages'][0]['path'])){
                     $products .= '
-                        <div class="col-sm-3 '.$sectorClass[0].'_'.$product['sector_id'].' isotope-item">
-                            <div class="grid">
-                                <figure class="m-0 effect-oscar">
-                                    <img class="product-img" src="'.BASE_URL.$product['productImages'][0]['path'].'" alt="">
-                                    <figcaption>
-                                        <h3>'.$product['product_name'].'</h3>
-                                        <a class="link icon-pentagon" href="'.BASE_URL.'index.php/?page=productDetails&productId='.$product['product_id'].'"><i class="fa fa-link"></i></a>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                        </div>
+			<div class="col-12 col-sm-6 col-md-4 col-lg-3  joomla isotope-item '.$sectorClass[0].'_'.str_replace('=','',encrypt($product['sector_id'])).'">
+				<div class="grid p-0">
+					<figure class="m-0 effect-oscar">
+						<img class="product-img img-responsive" src="'.BASE_URL.$product['productImages'][0]['path'].'" alt="" style="height:235px;">
+						<figcaption>
+							<h3 class="pt-0 mt-2" >'.$product['product_name'].'</h3>
+							<a class="link icon-pentagon" href="'.BASE_URL.'index.php/?page=productDetails&productId='.$product['product_id'].'"><i class="fa fa-link"></i></a>
+							<a class="view icon-pentagon" data-rel="prettyPhoto" href="'.BASE_URL.$product['productImages'][0]['path'].'">
+								<i class="fa fa-search"></i>
+							</a>
+						</figcaption>
+					</figure>
+				</div>
+			</div>
                     ';
                 }
             }
@@ -1605,10 +1581,13 @@ class Ui {
             foreach($data['exportMarketList'] as $exportMarketList){
 
                 foreach($data['exportMarkets'] as $exportMarket){
+
+		    $emName = preg_replace('![^a-z0-9]+!i', '-', strtolower(trim($exportMarket['name'])) );
+
                     if ($exportMarketList['export_market_id'] == $exportMarket['id']){
                         $exportList .= '
                             <span class="pr-1 pb-2">
-                                <a href="'.BASE_URL.'index.php/?page=viewProducts&filter=exportMarket&exportMarketId='.$exportMarket['id'].'" class="badge badge-pill badge-light">
+                                <a href="'.BASE_URL.'products/export-market/'.$emName.'/'.encrypt($exportMarket['id']).'" class="badge badge-pill badge-light">
                                     <p class="d-inline h6"><i class="fa fa-truck"></i> '.$exportMarket['name'].'</p>
                                 </a>
                             </span>
@@ -1637,8 +1616,8 @@ class Ui {
             '.$this->banner($data['companyDetails'][0]['name'], $data['breadCrumbs']).'   
             
             <div class="row about-wrapper-bottom">
-                <div class="col-md-6 ts-padding about-img">
-                                    <img src="'.BASE_URL.$data['companyDetails'][0]['logo_img_path'].'" alt="logo">
+                <div class="col-md-6 ts-padding about-img d-flex">
+                                    <img src="'.BASE_URL.$data['companyDetails'][0]['logo_img_path'].'" class="mx-auto my-auto" alt="logo">
                 </div>
                 <!--/ About image end -->
                 <div class="col-md-6 ts-padding about-message">
@@ -1656,12 +1635,12 @@ class Ui {
                     
                     </ul>
                     <h3 class="widget-title mb-1">Sector</h3>
-                        <span class="d-flex justify-content-start pb-3">
+                        <div class="pb-2">
                             '.$sectorTags.'
-                        </span>
+                        </div>
                     <h4 class="text-dark">Social Media Links</h4>
                     '.($socialOptions != '' ? 
-                        '<span class="d-flex justify-content-start pb-3">
+                        '<div class="d-flex justify-content-start pb-3">
                             <ul class="dark unstyled text-center">
                                 <li>
                                 
@@ -1669,11 +1648,11 @@ class Ui {
 
                                 </li>
                             </ul>
-                        </span>
+                        </div>
                     ' : '<p class="mb-2">No Social Media Links Available.</p>'
                     ).'
                     <h4 class="text-dark">Export Markets</h4>
-                    <div class="row pl-3">
+                    <div class="row col-12 pl-3">
                     '.($exportList ?? 'No Export Markets Available.').'
                     </div>
                 </div>
@@ -2055,13 +2034,12 @@ class Ui {
                                         <hr>
                                         <div class="form-group row">
                                             <div class="col-sm-12">
-                                                <span class="offset-sm-2">
-                                                    <a href="'.BASE_URL.'index.php?page=buyerRegistration">Register as a Buyer</a> OR
-                                                    <a href="'.BASE_URL.'index.php?page=companyRegistration">Register as a Company</a>
-                                                    <br>
+                                                <span class="offset-sm-2 mb-2 d-block">
+                                                    <a href="'.BASE_URL.'registration/buyer">Register as a Buyer</a> or
+                                                    <a href="'.BASE_URL.'registration/company">Register as a Company</a>
                                                 </span>
                                                 <span class="offset-sm-2">
-                                                    <a class="card-link" href="'.BASE_URL.'index.php?page=forgotPassword" >Forgot Password?</a>
+                                                    <a class="card-link" href="'.BASE_URL.'/forgot-password" >Forgot Password?</a>
                                                 </span>
                                             </div>
                                         </div>
@@ -2831,7 +2809,7 @@ class Ui {
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-sm-10">
-                                                <a class="card-link" href="'.BASE_URL.'index.php?page=signIn" >I remember my password</a>
+                                                <a class="card-link" href="'.BASE_URL.'signIn" >I remember my password</a>
                                             </div>
                                         </div>
                                         <div class="form-group row">
@@ -3068,11 +3046,18 @@ class Ui {
         <!-- google map >
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcABaamniA6OL5YvYSpB3pFMNrXwXnLwU&libraries=places"></script>
         <script src="'.BASE_URL.'plugins/google-map/gmap.js"></script>-->
+
         
+	<!-- bootpag pagination plugin-->
+        <script src="'.BASE_URL.'js/jquery.bootpag.min.js"></script>
+	<!-- Custome jQuery for User interaction with the UI-->
+        <script src="'.BASE_URL.'js/pagination.js"></script>
+
         <!-- Datatables JS -->
-        <script src="'.BASE_URL.'plugins/datatables/jQuery.dataTables.min.js"></script>
+       <!-- <script src="'.BASE_URL.'plugins/datatables/jQuery.dataTables.min.js"></script>
         <script src="'.BASE_URL.'plugins/datatables/dataTables.bootstrap4.min.js"></script>
-        
+        -->
+
         <!--<script src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
         <script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.bootstrap4.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>-->
@@ -3081,7 +3066,7 @@ class Ui {
         <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/js/fileinput.min.js"></script>
         <script src="'.BASE_URL.'plugins/bootstrap-fileinput-master/themes/fas/theme.js"></script>
         <script src="'.BASE_URL.'js/jQuery-file-upload.js"></script>
-        
+
         <!-- Main Script -->
         <script src="'.BASE_URL.'js/script.js"></script>
         

@@ -3,16 +3,13 @@
 // The functions that start with get, feth rows from the database,
 // while those that start with set, perform an Update or an Insert depending on the values passed to it.
 
-require_once('./definitions.php');
 require_once('./class.ilog.php');
-require_once('./class.helper.php');
 
 class Process{
 
     private $conn;
     private $status;
     private $log;
-    private $helper;
     private $pepper = '3xp0rtBe71z3';
 
     function __construct(){
@@ -26,7 +23,6 @@ class Process{
             $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
             $this->log = new iLog();
-            $this->helper = new Helper();
           
         } catch(PDOException $e) {
             echo "Connection failed: " . $e->getMessage();
@@ -38,7 +34,7 @@ class Process{
     // Validates login
     public function validateLogin ($data = null){
 
-        $email = $this->helper->sanitize($data['email']) ?? '';
+        $email = $this->sanitize($data['email']) ?? '';
         $pass = $data['password'] ?? '';
 
         $result = $this->getUserSalt($email);
@@ -63,11 +59,11 @@ class Process{
     //creates the buyer's profile
     public function createBuyerProfile($data = NULL){
 
-        $firstName = $this->helper->sanitize($data['firstName']) ?? '';
-        $lastName = $this->helper->sanitize($data['lastName']) ?? '';
-        $email = $this->helper->sanitize($data['email']) ?? '';
-        $companyName = $this->helper->sanitize($data['companyName']) ?? '';
-        $pass = $this->helper->sanitize($data['confirmPass']) ?? '';
+        $firstName = $this->sanitize($data['firstName']) ?? '';
+        $lastName = $this->sanitize($data['lastName']) ?? '';
+        $email = $this->sanitize($data['email']) ?? '';
+        $companyName = $this->sanitize($data['companyName']) ?? '';
+        $pass = $this->sanitize($data['confirmPass']) ?? '';
 
         $salt = bin2hex(random_bytes(7));
 
@@ -120,7 +116,7 @@ class Process{
     //gets the salt of the password for the respective email address provided
     public function getUserSalt($email = null){
         
-        $email = $this->helper->sanitize($email);
+        $email = $this->sanitize($email);
 
         $sql = 'SELECT salt FROM users u WHERE u.email = ? AND status = 1';
         $query = $this->conn->prepare($sql);
@@ -202,30 +198,41 @@ class Process{
         return false;
     }
     //gets the company info by comapnyId or by user_id 
-    public function getCompanyDetails($companyId = null){
+    public function getCompanyDetails($companyId = null, $status = 1){
 
-        $companyId = $this->helper->sanitize($companyId);
-        
+        $id = 0;
+
         if (isset($companyId) && $companyId != null){
             //comapny_id passed so find by company_id
-            $sql = 'SELECT * FROM company WHERE id = '.$companyId.' AND status = 1';
+	    $id = $this->sanitize($companyId);
+
+            $sql = 'SELECT * FROM company WHERE id = ? AND status = ?';
+
         }else{
             //Company_id was not passed, so find company_details by user_id in session
-            $sql = 'SELECT * FROM company WHERE user_id = '.$_SESSION['USERDATA']['user_id'].' AND status = 1';
+
+	    $id = $_SESSION['USERDATA']['user_id'];
+            $sql = 'SELECT * FROM company WHERE user_id = ? AND status = ?';
         }
 
         $query = $this->conn->prepare($sql);
-        $query->execute();
-        
-        if ($query->rowCount() > 0 ){
+
+	$query->bindParam(1, $id);
+	$query->bindParam(2, $status);
+
+        if ($query->execute()){
+
             return $query->fetchAll();
-        }
+		
+	}
+        
+	$this->log->error('getCompanyDetails failed to execute');
         return false;
     }
     //gets the products for a specifice company
     public function getCompanyProducts($companyId = null){
         
-        $companyId = $this->helper->sanitize($companyId);
+        $companyId = $this->sanitize($companyId);
         $this->status = false;
 
         try {
@@ -267,12 +274,56 @@ class Process{
             return $this->status;
         }
     }
+    //gets all the products providing a filter options
+    public function get_product_list($pProductName = null, $pHsCode = null,  $pSectorId = null, $pExportMarketId = null, $pLimit = 0, $pStatus = 1){
+        
+
+	//sanitizing 
+	$productName 	= $this->sanitize($pProductName);
+	$hsCode 	= $this->sanitize($pHsCode);
+	$sectorId 	= $this->sanitize($pSectorId);
+	$exportMarketId	= $this->sanitize($pExportMarketId);
+	$limit  	= $this->sanitize($pLimit);
+	$status  	= $this->sanitize($pStatus);
+
+        $sql = '
+		call get_product_list(?, ?, ?, ?, ?, ?);
+        ';
+
+        $query = $this->conn->prepare($sql);
+
+	$query->bindParam(1, $productName);
+	$query->bindParam(2, $hsCode);
+	$query->bindParam(3, $sectorId);
+	$query->bindParam(4, $exportMarketId);
+	$query->bindParam(5, $limit);
+	$query->bindParam(6, $status);
+
+        if( $query->execute() ){
+
+		$result['products'] = $query->fetchall();
+
+		foreach ($result['products'] as $key => $val){
+
+			$result['products'][$key]['productimages'] = $this->getproductimages($val['product_id']);
+		
+		}
+		
+		return $result['products'];
+	
+	}
+        
+	$this->log->error('getproducts() failed to execute');
+        return false;
+
+    }
     //gets all the products that are active in the database
-    public function getProducts(){
+    public function getproducts(){
         
         $this->status = false;
 
-        $sql = 'SELECT 
+        $sql = '
+		select 
                     prod.id as product_id, 
                     prod.company_id,
                     prod.hs_code,
@@ -282,34 +333,97 @@ class Process{
                     com.name as company_name,
                     sec.id as sector_id,
                     sec.name as sector_name
-                FROM 
-                    products AS prod,
-                    company AS com,
-                    sector AS sec
-                WHERE 
-                    prod.sector_id = sec.id  AND
-                    prod.company_id = com.id AND
-                    prod.status = 1 AND 
-                    com.status = 1 AND 
+                from 
+                    products as prod,
+                    company as com,
+                    sector as sec
+                where 
+                    prod.sector_id = sec.id  and
+                    prod.company_id = com.id and
+                    prod.status = 1 and 
+                    com.status = 1 and 
                     sec.status = 1 
         ';
 
         $query = $this->conn->prepare($sql);
-        $query->execute();
+
+        if( $query->execute() ){
+
+		$result['products'] = $query->fetchall();
+
+		foreach ($result['products'] as $key => $val){
+
+			$result['products'][$key]['productImages'] = $this->getproductimages($val['product_id']);
+		
+		}
+		
+		return $result['products'];
+	
+	}
         
-        if ($query->rowCount() > 0 ){
-            $this->status = true;
-            $result['products'] = $query->fetchAll();
-            return $result['products'];
-        }
-        return $this->status;
+	$this->log->error('getproducts() failed to execute');
+        return false;
+
+    }
+    //gets all the products that are export to a particular market
+    public function getProductsByExportMarket( $exId ){
+        
+        $this->status = false;
+
+        $sql = '
+		SELECT
+			prod.id as product_id,
+			prod.company_id,
+			prod.hs_code,
+			prod.is_featured,
+			prod.name as product_name,
+			prod.description as product_description,
+			com.name as company_name,
+			sec.id as sector_id,
+			sec.name as sector_name,
+		    	eml.export_market_id as export_market_id
+		FROM
+			products AS prod,
+			company AS com,
+			sector AS sec,
+		        export_market_list AS eml
+		WHERE
+			prod.sector_id = sec.id  AND
+			prod.company_id = com.id AND
+			prod.company_id = eml.company_id AND 
+		    	eml.export_market_id = ? AND 
+		    	eml.status = 1 AND
+		    	prod.status = 1 AND
+			com.status = 1 AND
+			sec.status = 1
+        ';
+
+        $query = $this->conn->prepare($sql);
+	$query->bindParam(1, $exId);
+
+        if( $query->execute() ){
+
+		$result['products'] = $query->fetchAll();
+
+		foreach ($result['products'] as $key => $val){
+
+			$result['products'][$key]['productImages'] = $this->getProductImages($val['product_id']);
+		
+		}
+		
+		return $result['products'];
+	
+	}
+        
+	$this->log->error('getProductsByExportMarket() failed to execute');
+        return false;
 
     }
     //gets the company product detail by company and product id. 
     public function getCompanyProductDetail($companyId = null, $productId = null){
         
-        $comapnyId = $this->helper->sanitize($companyId);
-        $productId = $this->helper->sanitize($productId);
+        $comapnyId = $this->sanitize($companyId);
+        $productId = $this->sanitize($productId);
         $this->status = false;
 
         try {
@@ -336,19 +450,26 @@ class Process{
             ';
 
             $query = $this->conn->prepare($sql);
-            $query->execute();
             
-            if ($query->rowCount() > 0 ){
+            if ($query->execute() ){
+
                 $this->status = true;
                 $result['product'] = $query->fetchAll();
-                foreach($result['product'] as $key => $product){
 
-                    $sql = 'SELECT 
+		foreach ($result['product'] as $key => $val){
+
+			$result['product'][$key]['productImages'] = $this->getProductImages($val['product_id']);
+		}
+
+
+                /*foreach($result['product'] as $key => $product){
+
+                    $sql = 'select 
                                 id, product_id, file_name, path, size, type 
-                            FROM 
+                            from 
                                 product_image
-                            WHERE
-                                product_id = '.$product['product_id'].' AND 
+                            where
+                                product_id = '.$product['product_id'].' and 
                                 status = 1;   
                     ';
                     
@@ -356,22 +477,54 @@ class Process{
                     $query->execute();
 
                     $result['product'][$key]['productImages'] = $query->fetchAll();
-                }
-                return  $result['product'];
+                }*/
+                return $result['product'];
             }
+		
+            $this->log->error('getCompanyProductDetails failed to execute');
+            return false;
+	
 
-            return $this->status;
         } catch(PDOException $e) {
-            $this->log->error('getCompanyProducts: '.$e->getMessage());
+            $this->log->error('getCompanyProductsDetail: '.$e->getMessage());
             return $this->status;
         }
     }   
-    //Gets a product by ID
-    public function getProductById($productId = null){
-        
-        $productId = $this->helper->sanitize($productId);
+    //gets all the images for a product by Id and status
+    //default image status 1 means active image 0 meaning no longer being used - terminated
+    public function getProductImages($pId, $status = 1){
 
-        $sql = 'SELECT 
+		
+	$sql = $this->conn->prepare('
+	    SELECT 
+		id, product_id, file_name, path, size, type 
+	    FROM
+		product_image
+	    WHERE
+		product_id = ? and 
+		status = 1;   
+	');
+
+	$sql->bindParam(1, $pId);
+
+	if($sql->execute()){
+
+	    return $sql->fetchAll();
+
+	}
+
+	$this->log->error('Failed to execute getProductImages');
+	return -1;
+
+    }
+    //Gets a product by ID
+    public function getProductById($productId){
+        
+        $productId = $this->sanitize($productId);
+
+        $sql = $this->conn->prepare('
+
+		SELECT 
                     prod.id AS product_id, 
                     prod.company_id ,
                     prod.name AS product_name,
@@ -385,21 +538,30 @@ class Process{
                     prod.sector_id = sec.id AND 
                     prod.status = 1 AND  
                     sec.status = 1  AND 
-                    prod.id = '.$productId.'
-        ';
+                    prod.id = ?
 
-        $query = $this->conn->prepare($sql);
-        $query->execute();
+        ');
+
+        $sql->bindParam(1, $productId);
+
+        if($sql->execute()){
+
+		if ($sql->rowCount() > 0 ){
+		    return $sql->fetch();
+		}
+		$this->log->info('No product was found with the provided product Id');
+		return false;
+	}
+
+	$this->log->error('Failed to execute getProductById');
+	return -1;
+
         
-        if ($query->rowCount() > 0 ){
-            return $query->fetch();
-        }
-        return false;
     }
     //Gets the product that has the same name
     public function getProductByName($productName = null){
         
-        $productName = $this->helper->sanitize($productName);
+        $productName = $this->sanitize($productName);
 
         $sql = 'SELECT 
                     prod.id AS product_id, 
@@ -429,7 +591,7 @@ class Process{
     //Gets all products by HS Code
     public function getProductsByHsCode($hsCode = null){
         
-        $hsCode = $this->helper->sanitize($hsCode);
+        $hsCode = $this->sanitize($hsCode);
 
         $sql = 'SELECT 
                     prod.id AS product_id, 
@@ -457,38 +619,32 @@ class Process{
         return false;
     }
     //gets the company info for a particular user
-    public function getProductsBySector($sectorId = null){
+    public function getProductsBySector($sId){
         
-        $sectorId = $this->helper->sanitize($sectorId);
+	$products = $this->getProducts();
+	$filtered = [];
 
-        $sql = 'SELECT 
-                    prod.id AS product_id, 
-                    prod.company_id ,
-                    prod.name AS product_name,
-                    prod.hs_code,
-                    prod.description AS product_description,
-                    sec.id AS sector_id,
-                    sec.name AS sector_name
-                FROM 
-                    products AS prod, sector sec
-                WHERE 
-                    prod.sector_id = '.$sectorId.' AND
-                    prod.status = 1 AND  
-                    sec.status = 1  
-        ';
+	//getting all products in a sector
+	foreach ($products as $key => $val){
+	
+		if ($val['sector_id'] == $sId){
+			array_push($filtered, $products[$key]);
+		}
+	}
 
-        $query = $this->conn->prepare($sql);
-        $query->execute();
-        
-        if ($query->rowCount() > 0 ){
-            return $query->fetchAll();
-        }
-        return false;
+	//getting product images
+	/*foreach ($filtered as $key => $val){
+
+		$filtered[$key]['productImages'] = $this->getProductImages($val['product_id']);
+	}*/
+
+	return $filtered;
+
     }
     //gets the user information
     Public function getUserDetails($userId = null){
 
-        $userId = $this->helper->sanitize($userId);
+        $userId = $this->sanitize($userId);
         
         $sql = 'SELECT * FROM users WHERE user_id = '.$userId.' AND status = 1';
         $query = $this->conn->prepare($sql);
@@ -544,13 +700,29 @@ class Process{
         
         $sql = 'SELECT id, name FROM export_market WHERE status = 1 ORDER BY name ASC;';
         $query = $this->conn->prepare($sql);
-        $query->execute();
         
-        if ($query->rowCount() > 0 ){
+        if ($query->execute()){
             return $query->fetchAll();
         }
         return false;
 
+    }
+    //gets an export market by Id
+    public function getExportMarketById($exId){
+        
+	$exMarkets = $this->getExportMarkets();
+
+	foreach ($exMarkets as $key => $val){
+
+		if ($val['id'] == $exId){
+			
+			return $val;
+
+		}
+	}
+
+	return [];
+	
     }
     // Gets all interest for a user 
     public function getInterest(){
@@ -598,15 +770,37 @@ class Process{
     // Gets all sectors
     public function getSectors(){
         
-        $sql = 'SELECT id, name, is_featured, img_path as sector_img FROM sector WHERE status = 1 ORDER BY name ASC;';
-        $query = $this->conn->prepare($sql);
-        $query->execute();
+        $sql = $this->conn->prepare('SELECT id, name, is_featured, img_path as sector_img FROM sector WHERE status = 1 ORDER BY name ASC;');
         
-        if ($query->rowCount() > 0 ){
-            return $query->fetchAll();
-        }
-        $this->log->info('getSectors returned false, no sectors found');
-        return false;
+        $sql->bindParam(1, $productId);
+
+        if($sql->execute()){
+
+		if ($sql->rowCount() > 0 ){
+		    return $sql->fetchAll();
+		}
+		$this->log->info('No Sectors were found');
+		return false;
+	}
+
+	$this->log->error('getSectors returned false, no sectors found');
+	return -1;
+    }
+    //gets a sector by Id
+    public function getSectorById($sId){
+       
+	$sectors = $this->getSectors();
+
+	foreach ($sectors as $key => $val){
+	
+		if ($sId == $val['id']){
+			return $sectors[$key];
+		}
+	}
+
+	return array();
+	 
+	
 
     }
     // Updates or inserts a user's social constact list
@@ -614,7 +808,7 @@ class Process{
 
         foreach ($data as $key => $array){
             
-            $link = $this->helper->sanitize($array['link']) ?? null;
+            $link = $this->sanitize($array['link']) ?? null;
             
             if ($array['socialContactListId'] > 0){
                 //record exist -- update
@@ -757,10 +951,10 @@ class Process{
     public function setProductDetails($data = null){
 
         $companyId = $_SESSION['COMPANYDATA'][0]['id'];
-        $name = $this->helper->sanitize($data['prodName']) ?? null;
-        $description = $this->helper->sanitize($data['productDescription']) ?? null;
-        $sectorId = $this->helper->sanitize($data['sectorId']) ?? null;
-        $hs_code = $this->helper->sanitize($data['hs_code']) ?? null;
+        $name = $this->sanitize($data['prodName']) ?? null;
+        $description = $this->sanitize($data['productDescription']) ?? null;
+        $sectorId = $this->sanitize($data['sectorId']) ?? null;
+        $hs_code = $this->sanitize($data['hs_code']) ?? null;
         
         if (isset($data['productId'])){
             //record exist  --- update
@@ -995,8 +1189,8 @@ class Process{
     // Updates the user profile
     public function updateUserProfile($data = null){
 
-        $fName = $this->helper->sanitize($data['firstName']) ?? '';
-        $lName = $this->helper->sanitize($data['lastName']) ?? '';
+        $fName = $this->sanitize($data['firstName']) ?? '';
+        $lName = $this->sanitize($data['lastName']) ?? '';
 
         $sql = 'UPDATE users SET full_name = ? WHERE id = '.$_SESSION['USERDATA']['user_id'].';';
         $query = $this->conn->prepare($sql);
@@ -1014,14 +1208,14 @@ class Process{
     // Updates a companys profile 
     public function updateCompanyProfile($data = null){
         
-        $ctv = $this->helper->sanitize($data['ctv'] ?? NULL);
-        $description = $this->helper->sanitize($data['description'] ?? NULL);
-        $name = $this->helper->sanitize(($data['name'] ?? NULL)) ;
-        $email = $this->helper->sanitize($data['email'] ?? NULL);
-        $phone = $this->helper->sanitize($data['phone'] ?? NULL);
-        $street = $this->helper->sanitize($data['street'] ?? NULL);
-        $website = $this->helper->sanitize($data['website'] ?? NULL);
-        $district = $this->helper->sanitize($data['district'] ?? NULL);
+        $ctv = $this->sanitize($data['ctv'] ?? NULL);
+        $description = $this->sanitize($data['description'] ?? NULL);
+        $name = $this->sanitize(($data['name'] ?? NULL)) ;
+        $email = $this->sanitize($data['email'] ?? NULL);
+        $phone = $this->sanitize($data['phone'] ?? NULL);
+        $street = $this->sanitize($data['street'] ?? NULL);
+        $website = $this->sanitize($data['website'] ?? NULL);
+        $district = $this->sanitize($data['district'] ?? NULL);
         
         $sql = "UPDATE 
                     company 
@@ -1061,6 +1255,31 @@ class Process{
 
     }
     
+
+    /*
+    *   Functions below are used to help the process class in carring out additional functionality.
+    *   Functions below do not communicate with the database.
+    */
+
+    //applies a basic sanitization
+    public function sanitize($input){
+        if ($input == null) {
+                return null;
+        }
+
+        $input = trim($input);
+
+        $search = array(
+          '@<script[^>]*?>.*?</script>@si',   // Strip out javascript
+          '@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
+          '@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly
+          '@<![\s\S]*?--[ \t\n\r]*>@'         // Strip multi-line comments
+        );
+
+        $output = preg_replace($search, '', $input);
+        return $output;
+    }
+
 }
 
 ?>

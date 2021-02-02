@@ -3,7 +3,11 @@ var initialPreview = {};
 var initialPreviewConfig = {};
 var BASE_URL = '';
 var uploadExtraData = {};
+var paginationTotalCount = 0;
 
+
+
+//set functions
 function setInitialPreview(val){
     initialPreview = val;
 }
@@ -16,6 +20,12 @@ function setBaseUrl(val){
 function setUploadExtraData(val){
     uploadExtraData = val;
 }
+function setPaginationTotalCount(num){
+    paginationTotalCount = num;
+}
+
+
+//get functions
 function getUploadExtraData(){
     return uploadExtraData;
 }
@@ -27,4 +37,7 @@ function getInitialPreviewConfig(){
 }
 function getBaseUrl(){
     return BASE_URL;
+}
+function getPaginationTotalCount(){
+    return paginationTotalCount;
 }

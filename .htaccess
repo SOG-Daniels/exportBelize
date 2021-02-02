@@ -1,0 +1,45 @@
+#Clean URLs
+
+RewriteEngine On
+
+#setting the root directory where all the website files are located
+RewriteBase /export
+
+RewriteCond %{REQUEST_FILENAME} !-f [OR]
+RewriteCond %{REQUEST_FILENAME} !-d 	
+
+# preventing other sites to access my images from my website and using up my banwidth
+#RewriteCond %{HTTP_REFERER} !^$
+#RewriteCond %{HTTP_REFERER} !^http://(www.)?192.168.10.77/.*$ [NC]
+#RewriteRule .+.(gif|jpg|png)$ - [F]
+
+# Error Docuement Redirects
+#ErrorDocument 404 /export/index.php?page=404
+
+# -------------- Start of Clear URLs ----------------- #
+
+# Public top bar links
+RewriteRule ^products/?$ index.php?page=viewProducts
+RewriteRule ^aboutUs?$ index.php?page=aboutUs
+RewriteRule ^contact?$ index.php?page=contact
+RewriteRule ^signIn?$ index.php?page=signIn
+
+# Additional links
+RewriteRule ^registration/buyer?$ index.php?page=buyerRegistration
+RewriteRule ^registration/company?$ index.php?page=companyRegistration
+RewriteRule ^forgot-password?$ index.php?page=forgotPassword
+
+# Products links 
+RewriteRule ^products/([a-zA-Z0-9\-\=]+)/([a-zA-Z0-9\-\=]+)$ index.php?page=productDetails&productName=$1&productId=$2 [L]
+
+# Sector link to view products 
+RewriteRule ^products/sector/([a-zA-Z0-9\-\=]+)/([a-zA-Z0-9\-\=]+)$ index.php?page=viewProducts&sectorName=$1&sectorId=$2 [L]
+
+# Sector link to view products 
+RewriteRule ^products/export-market/([a-zA-Z0-9\-\=]+)/([a-zA-Z0-9\-\=]+)$ index.php?page=viewProducts&exMarketName=$1&exMarketId=$2 [L]
+
+# Company Links
+RewriteRule ^company/([a-zA-Z0-9\-\=]+)/([a-zA-Z0-9\-\=]+)$ index.php?page=companyDetail&companyName=$1&companyId=$2 [L]
+
+
+# -------------- End of Clean URLs ------------------- #

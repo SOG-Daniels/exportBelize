@@ -1,4 +1,9 @@
 
 $(document).ready(function() {
-    $('#dataTable').DataTable();
-} );
+
+	var dTable = document.getElementById('dataTable');
+	if(dTable){
+		$('#dataTable').DataTable();
+	}
+
+});

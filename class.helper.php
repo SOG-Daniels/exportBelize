@@ -62,9 +62,9 @@ class Helper
     //Sanitizes incoming inputs, strips spaces, removes htmlspecialchar and removes slashes
     public function sanitize($val = null){
 
-        $value = trim($val);
-        $value = htmlspecialchars($value);
-        $value = stripcslashes($value);
+       // $value = trim($val);
+       // $value = htmlspecialchars($value);
+       // $value = stripcslashes($value);
 
         return $value;
     }

@@ -595,24 +595,21 @@
 
         }else if($_POST['action'] == 'productSearch'){
 
+            /*$products = [];
+            $result['sectorId'] = $_POST['sectorId'];
+            $result['productNameSearch'] = $_POST['productName'];
+            $result['sectors'] = $process->getSectors();
+	    */
 	    $productName    = $_POST['productName'] ?? null;
 	    $sectorId	    = isset($_POST['sectorId'])? decrypt($_POST['sectorId']) : null;
 	    $exportMarketId = isset($_POST['exportMarketId'])? decrypt($_POST['exportMarketId']) : null;
 	    $hsCode	    = $_POST['hsCode'] ?? null;
 
+
 	    echo '<pre style="margin-top: 300px;">';
 	    print_r($_POST);
 	    echo '</pre>';
-
-	    //getting results 
-
-	    $result['products'] = $process->get_product_list($productName, $hsCode, $sectorId, $exportMarketId);
-
-	    $result['searchBy']['productName'] = $productName;
-	    $result['searchBy']['hsCode'] = $hsCode;
-	    $result['searchBy']['sectorId'] = encrypt($sectorId);
-	    $result['searchBy']['exportMarketId'] = encrypt($exportMarketId);
-		
+	
             //filtering out products for output
             /*if (isset($_POST['sectorId']) && $_POST['sectorId'] != 0){
                 $products = $process->getProductsBySector($_POST['sectorId']);

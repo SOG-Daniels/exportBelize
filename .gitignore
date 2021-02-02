@@ -1,4 +1,6 @@
+#Ignore the following folders listed below
 videos/
 uploads/
 logs/
 images/
+test_rewrite/
